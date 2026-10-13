@@ -1,0 +1,519 @@
+#!/usr/bin/env python3
+"""把 questions_zh.json 生成一个干净的单页中文题库（图片内嵌，离线可用）。
+
+用法：
+    python3 build_page.py                                  # 默认 exam=07_aki
+    python3 build_page.py --exam 06_aki --out 我的题库.html
+
+产出：工作区根目录下的 <题库标题>.html，单文件、无外部依赖，双击即可看。
+"""
+
+import argparse
+import base64
+import json
+import os
+import re
+import sys
+
+EXAM = "07_aki"
+ROOT = "kakomon"
+
+TITLE = {
+    "07_aki": "情報処理安全確保支援士 令和7年秋期 午前Ⅰ・午前Ⅱ 中文题库",
+}
+
+HTML = r"""<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__</title>
+<style>
+:root{
+  --bg:#f5f6f8; --card:#fff; --ink:#1f2430; --ink-2:#5b6473; --ink-3:#8b95a5;
+  --line:#e4e7ec; --accent:#2f5bd7; --accent-soft:#eef2fd;
+  --ok:#2f7d4f; --bad:#c8372d; --ok-soft:#eaf5ee; --bad-soft:#fdeceb;
+  --radius:12px; --shadow:0 1px 2px rgba(16,24,40,.05),0 6px 20px -12px rgba(16,24,40,.18);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.85 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  -webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-decoration:none}
+.topbar{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line)}
+.topbar-in{max-width:1180px;margin:0 auto;padding:16px 22px 14px;
+  display:flex;flex-wrap:wrap;gap:14px 18px;align-items:flex-end;justify-content:space-between}
+.brand h1{margin:0;font-size:19px;letter-spacing:.2px;font-weight:650}
+.brand .sub{margin:4px 0 0;color:var(--ink-3);font-size:13px}
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.tools input[type=search],.tools select{font:inherit;font-size:14px;padding:8px 11px;border:1px solid var(--line);
+  border-radius:9px;background:#fff;color:var(--ink);min-width:150px;outline:none}
+.tools input[type=search]{min-width:230px}
+.tools input[type=search]:focus,.tools select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.sw{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-2);
+  background:#fff;border:1px solid var(--line);border-radius:9px;padding:8px 12px;cursor:pointer;user-select:none}
+.sw input{margin:0;accent-color:var(--accent);width:15px;height:15px}
+.score{font-size:13px;color:var(--ink-2);background:#fff;border:1px solid var(--line);
+  border-radius:9px;padding:8px 12px;white-space:nowrap}
+.score b{color:var(--accent);font-weight:650}
+.layout{max-width:1180px;margin:0 auto;padding:22px;display:grid;
+  grid-template-columns:262px minmax(0,1fr);gap:22px;align-items:start}
+aside{position:sticky;top:104px;max-height:calc(100vh - 128px);overflow:auto;
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 10px 16px}
+aside h3{margin:6px 8px 8px;font-size:12px;letter-spacing:.14em;color:var(--ink-3);font-weight:600}
+aside ol{list-style:none;margin:0 0 10px;padding:0}
+aside li a{display:block;padding:6px 9px;border-radius:8px;color:var(--ink-2);font-size:14px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+aside li a:hover{background:#f2f4f8;color:var(--ink)}
+aside li a.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+aside li a.done::after{content:"✓";float:right;color:var(--ok);font-weight:700}
+aside .hint{margin:10px 8px 0;color:var(--ink-3);font-size:12px;line-height:1.7}
+main{display:flex;flex-direction:column;gap:20px;min-width:0}
+.q{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:20px 24px 18px;scroll-margin-top:110px}
+.q.hide{display:none}
+.qhead{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline;margin-bottom:12px}
+.badge{font-size:12px;font-weight:650;color:var(--accent);background:var(--accent-soft);
+  border-radius:999px;padding:3px 10px;white-space:nowrap}
+.qhead h2{margin:0;font-size:16.5px;font-weight:650;line-height:1.5;flex:1 1 240px;min-width:180px}
+.tag{font-size:12px;color:var(--ink-3);white-space:nowrap}
+.stem{color:var(--ink);overflow-wrap:anywhere}
+.stem ul,.stem ol{margin:8px 0;padding-left:1.5em}
+.stem li{margin:3px 0}
+/* 题干与选项都备了中日两版，勾「显示日文原文」时原地切换，不留两块内容 */
+.lang-zh{display:block}
+.lang-jp{display:none}
+body.jp .lang-zh{display:none}
+body.jp .lang-jp{display:block}
+.lang-jp,.jpbody{font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic",
+  "Meiryo","Noto Sans JP",-apple-system,sans-serif}
+.none{color:var(--ink-3)}
+.opts{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.opt{display:flex;gap:11px;align-items:flex-start;padding:10px 13px;border:1px solid var(--line);
+  border-radius:10px;cursor:pointer;transition:.14s;background:#fcfcfd}
+.opt:hover{border-color:#c9d2e6;background:#f8faff}
+.opt .lbl{flex:0 0 26px;height:26px;border-radius:8px;background:#f0f2f6;color:var(--ink-2);
+  display:grid;place-items:center;font-size:14px;font-weight:600;margin-top:1px}
+.opt .txt{flex:1;min-width:0;overflow-wrap:anywhere}
+.opt.sel{border-color:var(--accent);background:#f5f8ff}
+.opt.sel .lbl{background:var(--accent);color:#fff}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.right .lbl{background:var(--ok);color:#fff}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt.wrong .lbl{background:var(--bad);color:#fff}
+.opt .mark{font-weight:700;font-size:14px}
+.opt.right .mark{color:var(--ok)}
+.opt.wrong .mark{color:var(--bad)}
+.optimg{margin:4px 0 2px}
+.acts{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px}
+.btn{font:inherit;font-size:13.5px;padding:7px 14px;border-radius:9px;border:1px solid var(--line);
+  background:#fff;color:var(--ink-2);cursor:pointer}
+.btn:hover{border-color:var(--accent);color:var(--accent);background:#f8faff}
+details.jp{margin-left:auto}
+details.jp summary{font-size:13px;color:var(--ink-3);cursor:pointer;list-style:none;padding:7px 12px;
+  border:1px dashed var(--line);border-radius:9px}
+details.jp summary::-webkit-details-marker{display:none}
+details.jp[open] summary{border-style:solid;color:var(--accent);border-color:#cdd8f2}
+.jpbody{margin-top:12px;padding:14px 16px;background:#fafbfc;border:1px solid var(--line);
+  border-radius:10px;color:var(--ink-2);font-size:14.5px;line-height:1.8}
+.jpbody .jplabel{font-size:12px;letter-spacing:.12em;color:var(--ink-3);margin:0 0 6px}
+.jpbody .jplabel:not(:first-child){margin-top:14px}
+.ans{margin-top:16px;border-top:1px dashed var(--line);padding-top:14px}
+.ans .head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.ans .k{font-size:12px;color:var(--ink-3);letter-spacing:.1em}
+.pill{font-weight:700;color:#fff;background:var(--ok);border-radius:8px;padding:2px 12px;font-size:14px}
+.res{font-size:13.5px;font-weight:600}
+.res.ok{color:var(--ok)}
+.res.bad{color:var(--bad)}
+.exp{overflow-wrap:anywhere}
+.exp ul,.exp ol{margin:8px 0;padding-left:1.5em}
+.exp dl{margin:10px 0}
+.exp dt{font-weight:650;margin-top:8px;color:var(--ink)}
+.exp dd{margin:2px 0 0 0;color:var(--ink-2)}
+.exp h4{margin:12px 0 4px;font-size:14px;color:var(--ink-3);letter-spacing:.1em;font-weight:600}
+.exp code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13.5px;
+  background:#f2f4f8;border:1px solid var(--line);border-radius:5px;padding:1px 5px;color:#2b3550}
+.exp img,.stem img,.opt img,.optimg img{max-width:100%;height:auto;display:block;margin:10px auto;
+  border-radius:8px}
+.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;
+  margin:0 .18em;line-height:1.25}
+.frac b{border-bottom:1px solid currentColor;padding:0 .3em;font-weight:inherit}
+.frac b+*{padding:0 .3em}
+.ol,.exp .ol{text-decoration:overline}
+.src{margin-top:12px;font-size:12.5px;color:var(--ink-3)}
+.empty{padding:36px;text-align:center;color:var(--ink-3);background:var(--card);
+  border:1px dashed var(--line);border-radius:var(--radius);display:none}
+footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);font-size:12.5px;line-height:1.9}
+.totop{position:fixed;right:24px;bottom:26px;width:42px;height:42px;border-radius:50%;border:1px solid var(--line);
+  background:#fff;color:var(--ink-2);cursor:pointer;box-shadow:var(--shadow);display:none;font-size:17px}
+@media(max-width:980px){
+  .layout{grid-template-columns:1fr;padding:16px}
+  aside{position:static;max-height:none;order:2}
+  main{order:1}
+  .tools input[type=search]{min-width:0;flex:1 1 100%}
+}
+@media print{
+  .topbar,aside,.totop{display:none}
+  .layout{display:block;padding:0}
+  .q{box-shadow:none;border:none;page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand">
+      <h1>__H1__</h1>
+      <p class="sub">__SUB__</p>
+    </div>
+    <div class="tools">
+      <input id="q" type="search" placeholder="搜索题号 / 关键词（中・日）">
+      <select id="cat" aria-label="按分类筛选"></select>
+      <label class="sw"><input type="checkbox" id="showAll">显示全部答案</label>
+      <label class="sw" title="题干与选项就地切换为日文原题"><input type="checkbox" id="showJp">显示日文原文</label>
+      <span class="score" id="score">已答 <b>0</b>/__TOTAL__</span>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside>
+    <h3>午前Ⅰ</h3>
+    <ol id="toc-am1"></ol>
+    <h3>午前Ⅱ</h3>
+    <ol id="toc-am2"></ol>
+    <p class="hint">点选项即判分，答对为绿色、答错为红色，答案自动记录在本机。切换「显示全部答案」可一次性核对整页；切换「显示日文原文」可把题干与选项就地换成日文原题。</p>
+  </aside>
+  <main id="list"></main>
+</div>
+
+<div class="empty" id="empty">没有匹配的题目，换个关键词或清空筛选试试。</div>
+
+<footer>
+  <p>__FOOT__</p>
+</footer>
+<button class="totop" id="totop" aria-label="回到顶部">↑</button>
+
+<script id="imgs" type="application/json">__IMAGES__</script>
+<script id="qdata" type="application/json">__DATA__</script>
+<script>
+(function () {
+  const DATA = JSON.parse(document.getElementById('qdata').textContent);
+  const IMGS = JSON.parse(document.getElementById('imgs').textContent);
+  const KEY = 'sc-__EXAM__-progress-v1';
+  const PART_NAME = { am1: '午前Ⅰ', am2: '午前Ⅱ' };
+  const state = JSON.parse(localStorage.getItem(KEY) || '{}');
+  const list = document.getElementById('list');
+  const empty = document.getElementById('empty');
+  const scoreEl = document.getElementById('score');
+  const showAll = document.getElementById('showAll');
+  const showJp = document.getElementById('showJp');
+  const qInput = document.getElementById('q');
+  const catSel = document.getElementById('cat');
+
+  const save = () => localStorage.setItem(KEY, JSON.stringify(state));
+
+  // ---------- 分类下拉 ----------
+  const cats = [...new Set(DATA.map(q => q.category_zh))].sort();
+  catSel.innerHTML = '<option value="">全部分类</option>' +
+    cats.map(c => '<option value="' + c.replace(/"/g, '&quot;') + '">' + c + '</option>').join('');
+
+  // ---------- 生成卡片 ----------
+  const cards = {};
+  DATA.forEach((q, idx) => {
+    const el = document.createElement('article');
+    el.className = 'q';
+    el.id = q.id;
+    el.dataset.part = q.part;
+    el.dataset.cat = q.category_zh;
+    el.dataset.idx = idx;
+
+    const NONE_ZH = '<span class="none">（见上方的选项图）</span>';
+    const NONE_JP = '<span class="none">（図を参照）</span>';
+    const optionBlock = q.option_image
+      ? '<div class="optimg">' + q.option_image + '</div>'
+      : '';
+    // 选项也带中日两版，切换语言时就地换掉文字，选中/判分状态不受影响
+    const opts = q.options.map((o, i) => {
+      const zh = (q.options_zh[i] || '').trim() || NONE_ZH;
+      const jp = (o.text || '').trim() || NONE_JP;
+      return '<li class="opt" data-label="' + o.label + '" data-correct="' + o.correct + '">' +
+          '<span class="lbl">' + o.label + '</span>' +
+          '<span class="txt">' +
+            '<span class="lang-zh">' + zh + '</span>' +
+            '<span class="lang-jp">' + jp + '</span>' +
+          '</span>' +
+        '</li>';
+    }).join('');
+
+    el.innerHTML =
+      '<div class="qhead">' +
+        '<span class="badge">' + PART_NAME[q.part] + '・問' + q.no + '</span>' +
+        '<h2>' + q.topic_zh + '</h2>' +
+        '<span class="tag">' + q.category_zh + '</span>' +
+      '</div>' +
+      '<div class="stem">' +
+        '<div class="lang-zh">' + q.stem_zh + '</div>' +
+        '<div class="lang-jp">' + q.stem + '</div>' +
+      '</div>' + optionBlock +
+      '<ul class="opts">' + opts + '</ul>' +
+      '<div class="acts">' +
+        '<button class="btn reveal">查看答案与详解</button>' +
+        '<details class="jp"><summary>日文解説</summary><div class="jpbody">' +
+          (q.origin ? '<p class="jplabel">出典</p><ul class="opts"><li class="opt" style="cursor:default">' + q.origin + '</li></ul>' : '') +
+          '<p class="jplabel">解説</p><div>' + q.explain + '</div>' +
+        '</div></details>' +
+      '</div>' +
+      '<div class="ans" hidden>' +
+        '<div class="head"><span class="k">正解</span><span class="pill">' + q.answer + '</span>' +
+          '<span class="res"></span></div>' +
+        '<div class="exp">' + q.explain_zh + '</div>' +
+        (q.origin_zh ? '<div class="src">出典：' + q.origin_zh.replace(/<\/?li>/g, '') + '</div>' : '') +
+      '</div>';
+
+    el.querySelectorAll('img[data-img]').forEach(i => { i.src = IMGS[i.dataset.img] || ''; });
+    list.appendChild(el);
+    cards[q.id] = el;
+  });
+
+  // ---------- 判分 / 显隐 ----------
+  function reveal(el, mark) {
+    const ans = el.querySelector('.ans');
+    const res = el.querySelector('.res');
+    ans.hidden = false;
+    el.querySelectorAll('.opt .mark').forEach(m => m.remove());
+    el.querySelectorAll('.opt').forEach(o => {
+      o.classList.remove('right', 'wrong');
+      const isC = o.dataset.correct === 'true';
+      if (el.dataset.picked === o.dataset.label) {
+        o.classList.add(isC ? 'right' : 'wrong');
+        o.insertAdjacentHTML('beforeend',
+          '<span class="mark">' + (isC ? '✓ 正确' : '✘ 错误') + '</span>');
+      } else if (isC) {
+        o.classList.add('right');
+        if (el.dataset.picked) o.insertAdjacentHTML('beforeend', '<span class="mark">✓ 正解</span>');
+      }
+    });
+    const pick = el.dataset.picked;
+    if (pick && mark) {
+      const right = el.querySelector('.opt[data-correct="true"]').dataset.label;
+      const ok = right === pick;
+      res.textContent = ok ? '你选对了' : '正确答案是 ' + right;
+      res.className = 'res ' + (ok ? 'ok' : 'bad');
+    }
+  }
+
+  const answered = () => Object.keys(state);
+
+  function refreshScore() {
+    const ids = answered();
+    const right = ids.filter(id => {
+      const el = cards[id];
+      if (!el) return false;
+      return el.querySelector('.opt[data-correct="true"]').dataset.label === state[id];
+    }).length;
+    scoreEl.innerHTML = '已答 <b>' + ids.length + '</b>/' + DATA.length +
+      (ids.length ? '・正确 <b>' + right + '</b>（' + Math.round(right / ids.length * 100) + '%）' : '');
+    DATA.forEach(q => {
+      const link = document.querySelector('aside a[href="#' + q.id + '"]');
+      if (link) link.classList.toggle('done', !!state[q.id]);
+    });
+  }
+
+  list.addEventListener('click', e => {
+    const opt = e.target.closest('.opt');
+    const card = e.target.closest('.q');
+    if (!card) return;
+    if (opt && !opt.closest('.jpbody')) {
+      card.dataset.picked = opt.dataset.label;
+      card.querySelectorAll('.opt').forEach(o => o.classList.remove('sel'));
+      opt.classList.add('sel');
+      state[card.id] = opt.dataset.label;
+      save(); refreshScore(); reveal(card, true);
+      return;
+    }
+    if (e.target.classList.contains('reveal')) { reveal(card, false); e.target.remove(); }
+  });
+
+  showAll.addEventListener('change', () => {
+    DATA.forEach(q => {
+      const el = cards[q.id];
+      if (showAll.checked) reveal(el, false);
+      else el.querySelector('.ans').hidden = true;
+    });
+  });
+
+  // 全局语言切换：题干与选项就地换成日文原题，选择与判分状态照旧，偏好记在本机
+  const LANG_KEY = 'sc-__EXAM__-lang-v1';
+  const applyLang = on => document.body.classList.toggle('jp', on);
+  showJp.checked = localStorage.getItem(LANG_KEY) === 'jp';
+  applyLang(showJp.checked);
+  showJp.addEventListener('change', () => {
+    applyLang(showJp.checked);
+    localStorage.setItem(LANG_KEY, showJp.checked ? 'jp' : 'zh');
+  });
+
+  // ---------- 目录 ----------
+  ['am1', 'am2'].forEach(part => {
+    document.getElementById('toc-' + part).innerHTML = DATA
+      .filter(q => q.part === part)
+      .map(q => '<li><a href="#' + q.id + '">問' + q.no + '　' + q.topic_zh + '</a></li>')
+      .join('');
+  });
+  document.querySelectorAll('aside a').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      document.getElementById(a.getAttribute('href').slice(1))
+        .scrollIntoView({ block: 'start' });
+    });
+  });
+  const links = {};
+  document.querySelectorAll('aside a').forEach(a => links[a.getAttribute('href').slice(1)] = a);
+  const io = new IntersectionObserver(es => {
+    es.forEach(en => {
+      if (!en.isIntersecting) return;
+      Object.values(links).forEach(l => l.classList.remove('on'));
+      const l = links[en.target.id];
+      if (l) l.classList.add('on');
+    });
+  }, { rootMargin: '-15% 0px -75% 0px' });
+  Object.values(cards).forEach(c => io.observe(c));
+
+  // ---------- 筛选 ----------
+  function applyFilter() {
+    const kw = qInput.value.trim().toLowerCase();
+    const cat = catSel.value;
+    let n = 0;
+    DATA.forEach(q => {
+      const el = cards[q.id];
+      const hay = (q.id + ' ' + q.topic_zh + ' ' + q.category_zh + ' ' + q.stem_zh + ' ' +
+        q.options_zh.join(' ') + ' ' + q.explain_zh + ' ' + q.topic + ' ' + q.stem).toLowerCase();
+      const ok = (!kw || hay.includes(kw)) && (!cat || q.category_zh === cat);
+      el.classList.toggle('hide', !ok);
+      const link = links[q.id];
+      if (link) link.parentElement.style.display = ok ? '' : 'none';
+      if (ok) n++;
+    });
+    empty.style.display = n ? 'none' : 'block';
+  }
+  qInput.addEventListener('input', applyFilter);
+  catSel.addEventListener('change', applyFilter);
+
+  // ---------- 恢复上次作答 ----------
+  DATA.forEach(q => {
+    const pick = state[q.id];
+    if (!pick) return;
+    const el = cards[q.id];
+    el.dataset.picked = pick;
+    const opt = el.querySelector('.opt[data-label="' + pick + '"]');
+    if (opt) opt.classList.add('sel');   // 只恢复选择状态，答案仍按开关控制
+  });
+
+  // ---------- 回顶部 ----------
+  const totop = document.getElementById('totop');
+  window.addEventListener('scroll', () => totop.style.display = window.scrollY > 600 ? 'block' : 'none');
+  totop.addEventListener('click', () => window.scrollTo({ top: 0 }));
+
+  refreshScore();
+
+  // 带 #锚点 打开时，等卡片渲染完再滚过去
+  const hash = location.hash.slice(1);
+  if (hash && cards[hash]) setTimeout(() => cards[hash].scrollIntoView(), 60);
+})();
+</script>
+</body>
+</html>
+"""
+
+
+def collect_images(questions, img_dir):
+    """把所有引用到的插图读成 data URI 字典（同一张图只存一份）。"""
+    names = set()
+    for q in questions:
+        for k in ("stem", "explain", "origin", "option_image", "stem_zh", "explain_zh", "origin_zh"):
+            names |= set(re.findall(r'<img src="([^"]+)"', q.get(k) or ""))
+        for o in q["options"]:
+            names |= set(re.findall(r'<img src="([^"]+)"', o["text"] or ""))
+        for t in q.get("options_zh", []):
+            names |= set(re.findall(r'<img src="([^"]+)"', t or ""))
+    imgs = {}
+    for n in sorted(names):
+        path = os.path.join(img_dir, n)
+        if os.path.exists(path):
+            with open(path, "rb") as f:
+                imgs[n] = "data:image/png;base64," + base64.b64encode(f.read()).decode()
+        else:
+            print(f"  警告：缺插图 {n}")
+    return imgs
+
+
+def tag_images(q):
+    """把 <img src="xx.png"> 改写成 <img data-img="xx.png">，运行时再填 data URI。"""
+    def walk(text):
+        return re.sub(r'<img src="([^"]+)"[^>]*>', r'<img data-img="\1" alt="">', text or "")
+
+    for k in ("stem", "explain", "origin", "option_image",
+              "stem_zh", "explain_zh", "origin_zh"):
+        if k in q:
+            q[k] = walk(q[k])
+    for o in q["options"]:
+        o["text"] = walk(o["text"])
+    q["options_zh"] = [walk(t) for t in q.get("options_zh", [])]
+    return q
+
+
+def main():
+    ap = argparse.ArgumentParser(description="生成单页中文题库")
+    ap.add_argument("--exam", default=EXAM)
+    ap.add_argument("--root", default=ROOT)
+    ap.add_argument("--out", default=None)
+    args = ap.parse_args()
+
+    src_dir = os.path.join(args.root, args.exam)
+    data_path = os.path.join(src_dir, "questions_zh.json")
+    if not os.path.exists(data_path):
+        print(f"找不到 {data_path}，先跑 extract_questions.py 并完成翻译")
+        return 1
+
+    questions = json.load(open(data_path, encoding="utf-8"))
+    img_dir = os.path.join(src_dir, "img")
+    imgs = collect_images(questions, img_dir)
+    questions = [tag_images(q) for q in questions]
+    n_img = sum(1 for q in questions for k in ("stem_zh", "explain_zh", "option_image")
+                if "data-img" in q.get(k, ""))
+
+    title = TITLE.get(args.exam, f"{args.exam} 中文题库")
+    h1 = title
+    parts = {}
+    for q in questions:
+        parts.setdefault(q["part"], []).append(q)
+    sub = "　·　".join(f"{'午前Ⅰ' if k == 'am1' else '午前Ⅱ'} {len(v)} 题"
+                     for k, v in sorted(parts.items()))
+    sub += f"　·　题干预解全部译为中文，题干与选项可一键切回日文原题　·　共 {len(questions)} 题"
+
+    foot = ("题目与解说取自 sc-siken.com（情報処理安全確保支援士 過去問解説）令和7年秋期，"
+            "版权归原站所有，本页仅为个人学习用途的离线整理；译文由 AI 辅助翻译，"
+            "如与原题有出入以原题为准。")
+
+    data = json.dumps(questions, ensure_ascii=False, separators=(",", ":"))
+    data = data.replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
+    imgjson = json.dumps(imgs, ensure_ascii=False, separators=(",", ":"))
+
+    html = (HTML.replace("__TITLE__", title).replace("__H1__", h1)
+                .replace("__SUB__", sub).replace("__TOTAL__", str(len(questions)))
+                .replace("__FOOT__", foot).replace("__EXAM__", args.exam)
+                .replace("__IMAGES__", imgjson.replace("<", "\\u003c"))
+                .replace("__DATA__", data))
+
+    out = args.out or f"SC_{args.exam}_中文题库.html"
+    with open(out, "w", encoding="utf-8") as f:
+        f.write(html)
+    size = os.path.getsize(out) / 1024
+    print(f"生成 {os.path.abspath(out)}　{size:.0f} KB　{len(questions)} 题　内嵌插图 {n_img} 处")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
