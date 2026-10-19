@@ -2,8 +2,10 @@
 """把 questions_zh.json 生成一个干净的单页中文题库（图片内嵌，离线可用）。
 
 用法：
-    python3 build_page.py                                  # 默认 exam=07_aki
-    python3 build_page.py --exam 06_aki --out 我的题库.html
+    python3 build_page.py                              # 默认把 EXAM 里列的考期合并成一页
+    python3 build_page.py --exam 07_haru               # 只出一个考期
+    python3 build_page.py --exam 07_aki,07_haru        # 指定几个考期合并
+    python3 build_page.py --out index.html             # 指定输出名（发布用）
 
 产出：工作区根目录下的 <题库标题>.html，单文件、无外部依赖，双击即可看。
 """
@@ -15,11 +17,20 @@ import os
 import re
 import sys
 
-EXAM = "07_aki"
+EXAM = "06_aki,07_aki,07_haru"  # 可传多个考期，逗号分隔，合并成一页
 ROOT = "kakomon"
+PART_CN = {"am1": "午前Ⅰ", "am2": "午前Ⅱ"}
+
+EXAM_NAME = {                     # 考期 ID → 时期名（页面显示、筛选用）
+    "06_aki": "令和6年秋期",
+    "07_aki": "令和7年秋期",
+    "07_haru": "令和7年春期",
+}
 
 TITLE = {
+    "06_aki": "情報処理安全確保支援士 令和6年秋期 午前Ⅰ・午前Ⅱ 中文题库",
     "07_aki": "情報処理安全確保支援士 令和7年秋期 午前Ⅰ・午前Ⅱ 中文题库",
+    "07_haru": "情報処理安全確保支援士 令和7年春期 午前Ⅰ・午前Ⅱ 中文题库",
 }
 
 HTML = r"""<!DOCTYPE html>
@@ -47,22 +58,26 @@ a{color:var(--accent);text-decoration:none}
   display:flex;flex-wrap:wrap;gap:14px 18px;align-items:flex-end;justify-content:space-between}
 .brand h1{margin:0;font-size:19px;letter-spacing:.2px;font-weight:650}
 .brand .sub{margin:4px 0 0;color:var(--ink-3);font-size:13px}
-.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.tools{display:flex;flex-wrap:nowrap;gap:10px;align-items:center}
 .tools input[type=search],.tools select{font:inherit;font-size:14px;padding:8px 11px;border:1px solid var(--line);
-  border-radius:9px;background:#fff;color:var(--ink);min-width:150px;outline:none}
-.tools input[type=search]{min-width:230px}
+  border-radius:9px;background:#fff;color:var(--ink);min-width:120px;outline:none}
+.tools input[type=search]{min-width:0;flex:0 1 200px}
+.tools select#cat{max-width:150px}
 .tools input[type=search]:focus,.tools select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
-.sw{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-2);
+.sw{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-2);white-space:nowrap;
   background:#fff;border:1px solid var(--line);border-radius:9px;padding:8px 12px;cursor:pointer;user-select:none}
 .sw input{margin:0;accent-color:var(--accent);width:15px;height:15px}
 .score{font-size:13px;color:var(--ink-2);background:#fff;border:1px solid var(--line);
-  border-radius:9px;padding:8px 12px;white-space:nowrap}
+  border-radius:9px;padding:8px 12px;white-space:nowrap;flex:0 0 auto}
 .score b{color:var(--accent);font-weight:650}
 .layout{max-width:1180px;margin:0 auto;padding:22px;display:grid;
   grid-template-columns:262px minmax(0,1fr);gap:22px;align-items:start}
 aside{position:sticky;top:104px;max-height:calc(100vh - 128px);overflow:auto;
   background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 10px 16px}
 aside h3{margin:6px 8px 8px;font-size:12px;letter-spacing:.14em;color:var(--ink-3);font-weight:600}
+aside h3+a,aside h3+ol{margin-top:0}
+aside .tocgroup{margin:0 0 14px}
+aside .tocpart{margin:8px 8px 3px;font-size:12.5px;color:var(--ink-2);font-weight:600}
 aside ol{list-style:none;margin:0 0 10px;padding:0}
 aside li a{display:block;padding:6px 9px;border-radius:8px;color:var(--ink-2);font-size:14px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -79,6 +94,8 @@ main{display:flex;flex-direction:column;gap:20px;min-width:0}
   border-radius:999px;padding:3px 10px;white-space:nowrap}
 .qhead h2{margin:0;font-size:16.5px;font-weight:650;line-height:1.5;flex:1 1 240px;min-width:180px}
 .tag{font-size:12px;color:var(--ink-3);white-space:nowrap}
+.tag.exam{color:var(--ink-2);background:#f2f4f8;border-radius:999px;padding:2px 9px}
+.single-exam .tag.exam{display:none}
 .stem{color:var(--ink);overflow-wrap:anywhere}
 .stem ul,.stem ol{margin:8px 0;padding-left:1.5em}
 .stem li{margin:3px 0}
@@ -152,6 +169,7 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
   .layout{grid-template-columns:1fr;padding:16px}
   aside{position:static;max-height:none;order:2}
   main{order:1}
+  .tools{flex-wrap:wrap}
   .tools input[type=search]{min-width:0;flex:1 1 100%}
 }
 @media print{
@@ -170,6 +188,8 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
     </div>
     <div class="tools">
       <input id="q" type="search" placeholder="搜索题号 / 关键词（中・日）">
+      <select id="exam" aria-label="按考期筛选"></select>
+      <select id="part" aria-label="正确率统计范围"></select>
       <select id="cat" aria-label="按分类筛选"></select>
       <label class="sw"><input type="checkbox" id="showAll">显示全部答案</label>
       <label class="sw" title="题干与选项就地切换为日文原题"><input type="checkbox" id="showJp">显示日文原文</label>
@@ -180,11 +200,8 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
 
 <div class="layout">
   <aside>
-    <h3>午前Ⅰ</h3>
-    <ol id="toc-am1"></ol>
-    <h3>午前Ⅱ</h3>
-    <ol id="toc-am2"></ol>
-    <p class="hint">点选项即判分，答对为绿色、答错为红色，答案自动记录在本机。切换「显示全部答案」可一次性核对整页；切换「显示日文原文」可把题干与选项就地换成日文原题。</p>
+    <nav id="toc"></nav>
+    <p class="hint">点选项即判分，答对为绿色、答错为红色，答案自动记录在本机。顶部可切换考期，并选择午前Ⅰ/Ⅱ/全部来统计正确率；切换「显示全部答案」可一次性核对整页，切换「显示日文原文」可把题干与选项就地换成日文原题。</p>
   </aside>
   <main id="list"></main>
 </div>
@@ -197,25 +214,54 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
 <button class="totop" id="totop" aria-label="回到顶部">↑</button>
 
 <script id="imgs" type="application/json">__IMAGES__</script>
+<script id="qexams" type="application/json">__EXAMS__</script>
 <script id="qdata" type="application/json">__DATA__</script>
 <script>
 (function () {
   const DATA = JSON.parse(document.getElementById('qdata').textContent);
   const IMGS = JSON.parse(document.getElementById('imgs').textContent);
-  const KEY = 'sc-__EXAM__-progress-v1';
+  const EXAMS = JSON.parse(document.getElementById('qexams').textContent);
+  const KEY = 'sc-' + EXAMS.map(e => e.id).join('+') + '-progress-v1';
   const PART_NAME = { am1: '午前Ⅰ', am2: '午前Ⅱ' };
-  const state = JSON.parse(localStorage.getItem(KEY) || '{}');
+  const state = loadState();
   const list = document.getElementById('list');
   const empty = document.getElementById('empty');
   const scoreEl = document.getElementById('score');
   const showAll = document.getElementById('showAll');
   const showJp = document.getElementById('showJp');
   const qInput = document.getElementById('q');
+  const examSel = document.getElementById('exam');
   const catSel = document.getElementById('cat');
+  const partSel = document.getElementById('part');
+  const links = {};
 
   const save = () => localStorage.setItem(KEY, JSON.stringify(state));
 
-  // ---------- 分类下拉 ----------
+  // 作答记录以 uid 为键；同时把旧版单考期的记录并进来，升级不丢已有进度
+  function loadState() {
+    let cur = {};
+    try { cur = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { cur = {}; }
+    EXAMS.forEach(ex => {
+      let old = {};
+      try { old = JSON.parse(localStorage.getItem('sc-' + ex.id + '-progress-v1') || '{}'); }
+      catch (e) { old = {}; }
+      Object.keys(old).forEach(qid => {
+        const uid = 'q-' + ex.id + '-' + qid;
+        if (cur[uid] === undefined) cur[uid] = old[qid];
+      });
+    });
+    return cur;
+  }
+
+  // ---------- 考期 / 分类下拉 ----------
+  if (EXAMS.length < 2) document.body.classList.add('single-exam');
+  examSel.innerHTML = '<option value="">全部考期</option>' +
+    EXAMS.map(e => '<option value="' + e.id + '">' + e.name + '</option>').join('');
+
+  partSel.innerHTML = '<option value="">正确率：全部（午前Ⅰ+Ⅱ）</option>' +
+    '<option value="am1">正确率：午前Ⅰ</option>' +
+    '<option value="am2">正确率：午前Ⅱ</option>';
+
   const cats = [...new Set(DATA.map(q => q.category_zh))].sort();
   catSel.innerHTML = '<option value="">全部分类</option>' +
     cats.map(c => '<option value="' + c.replace(/"/g, '&quot;') + '">' + c + '</option>').join('');
@@ -225,8 +271,9 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
   DATA.forEach((q, idx) => {
     const el = document.createElement('article');
     el.className = 'q';
-    el.id = q.id;
+    el.id = q.uid;
     el.dataset.part = q.part;
+    el.dataset.exam = q.exam;
     el.dataset.cat = q.category_zh;
     el.dataset.idx = idx;
 
@@ -252,6 +299,7 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
       '<div class="qhead">' +
         '<span class="badge">' + PART_NAME[q.part] + '・問' + q.no + '</span>' +
         '<h2>' + q.topic_zh + '</h2>' +
+        '<span class="tag exam">' + q.exam_name + '</span>' +
         '<span class="tag">' + q.category_zh + '</span>' +
       '</div>' +
       '<div class="stem">' +
@@ -275,7 +323,7 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
 
     el.querySelectorAll('img[data-img]').forEach(i => { i.src = IMGS[i.dataset.img] || ''; });
     list.appendChild(el);
-    cards[q.id] = el;
+    cards[q.uid] = el;
   });
 
   // ---------- 判分 / 显隐 ----------
@@ -305,20 +353,24 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
     }
   }
 
-  const answered = () => Object.keys(state);
+  // 统计范围：同时受「考期」与「午前Ⅰ/Ⅱ/全部」两个维度约束
+  function scope() {
+    const ex = examSel.value;
+    const part = partSel.value;
+    return DATA.filter(q => (!ex || q.exam === ex) && (!part || q.part === part));
+  }
 
   function refreshScore() {
-    const ids = answered();
-    const right = ids.filter(id => {
-      const el = cards[id];
-      if (!el) return false;
-      return el.querySelector('.opt[data-correct="true"]').dataset.label === state[id];
+    const sc = scope();
+    const done = sc.filter(q => state[q.uid]);
+    const right = done.filter(q => {
+      const el = cards[q.uid];
+      return el && el.querySelector('.opt[data-correct="true"]').dataset.label === state[q.uid];
     }).length;
-    scoreEl.innerHTML = '已答 <b>' + ids.length + '</b>/' + DATA.length +
-      (ids.length ? '・正确 <b>' + right + '</b>（' + Math.round(right / ids.length * 100) + '%）' : '');
+    scoreEl.innerHTML = '已答 <b>' + done.length + '</b>/' + sc.length +
+      (done.length ? '・正确 <b>' + right + '</b>（' + Math.round(right / done.length * 100) + '%）' : '');
     DATA.forEach(q => {
-      const link = document.querySelector('aside a[href="#' + q.id + '"]');
-      if (link) link.classList.toggle('done', !!state[q.id]);
+      if (links[q.uid]) links[q.uid].classList.toggle('done', !!state[q.uid]);
     });
   }
 
@@ -339,38 +391,55 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
 
   showAll.addEventListener('change', () => {
     DATA.forEach(q => {
-      const el = cards[q.id];
+      const el = cards[q.uid];
       if (showAll.checked) reveal(el, false);
       else el.querySelector('.ans').hidden = true;
     });
   });
 
   // 全局语言切换：题干与选项就地换成日文原题，选择与判分状态照旧，偏好记在本机
-  const LANG_KEY = 'sc-__EXAM__-lang-v1';
+  const LANG_KEY = 'sc-' + EXAMS.map(e => e.id).join('+') + '-lang-v1';
   const applyLang = on => document.body.classList.toggle('jp', on);
-  showJp.checked = localStorage.getItem(LANG_KEY) === 'jp';
+  const savedLang = () => {                  // 兼容旧版单考期页面存下的偏好
+    const v = localStorage.getItem(LANG_KEY);
+    if (v) return v;
+    for (const ex of EXAMS) {
+      const old = localStorage.getItem('sc-' + ex.id + '-lang-v1');
+      if (old) return old;
+    }
+    return 'zh';
+  };
+  showJp.checked = savedLang() === 'jp';
   applyLang(showJp.checked);
   showJp.addEventListener('change', () => {
     applyLang(showJp.checked);
     localStorage.setItem(LANG_KEY, showJp.checked ? 'jp' : 'zh');
   });
 
-  // ---------- 目录 ----------
-  ['am1', 'am2'].forEach(part => {
-    document.getElementById('toc-' + part).innerHTML = DATA
-      .filter(q => q.part === part)
-      .map(q => '<li><a href="#' + q.id + '">問' + q.no + '　' + q.topic_zh + '</a></li>')
-      .join('');
-  });
+  // ---------- 目录（按考期分组，多考期才显示组标题） ----------
+  const toc = document.getElementById('toc');
+  toc.innerHTML = EXAMS.map(ex => {
+    const qs = DATA.filter(q => q.exam === ex.id);
+    return '<div class="tocgroup" data-exam="' + ex.id + '">' +
+      (EXAMS.length > 1 ? '<h3>' + ex.name + '</h3>' : '') +
+      ['am1', 'am2'].map(part => {
+        const sub = qs.filter(q => q.part === part);
+        if (!sub.length) return '';
+        return '<div class="tocpart-block" data-part="' + part + '">' +
+          '<p class="tocpart">' + PART_NAME[part] + '　' + sub.length + ' 题</p><ol>' +
+          sub.map(q => '<li><a href="#' + q.uid + '">問' + q.no + '　' + q.topic_zh + '</a></li>').join('') +
+          '</ol></div>';
+      }).join('') + '</div>';
+  }).join('');
+
   document.querySelectorAll('aside a').forEach(a => {
     a.addEventListener('click', e => {
       e.preventDefault();
       document.getElementById(a.getAttribute('href').slice(1))
         .scrollIntoView({ block: 'start' });
     });
+    links[a.getAttribute('href').slice(1)] = a;
   });
-  const links = {};
-  document.querySelectorAll('aside a').forEach(a => links[a.getAttribute('href').slice(1)] = a);
   const io = new IntersectionObserver(es => {
     es.forEach(en => {
       if (!en.isIntersecting) return;
@@ -385,27 +454,41 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
   function applyFilter() {
     const kw = qInput.value.trim().toLowerCase();
     const cat = catSel.value;
+    const ex = examSel.value;
     let n = 0;
     DATA.forEach(q => {
-      const el = cards[q.id];
-      const hay = (q.id + ' ' + q.topic_zh + ' ' + q.category_zh + ' ' + q.stem_zh + ' ' +
-        q.options_zh.join(' ') + ' ' + q.explain_zh + ' ' + q.topic + ' ' + q.stem).toLowerCase();
-      const ok = (!kw || hay.includes(kw)) && (!cat || q.category_zh === cat);
+      const el = cards[q.uid];
+      const hay = (q.exam_name + ' ' + q.id + ' ' + q.topic_zh + ' ' + q.category_zh + ' ' +
+        q.stem_zh + ' ' + q.options_zh.join(' ') + ' ' + q.explain_zh + ' ' + q.topic + ' ' +
+        q.stem).toLowerCase();
+      const ok = (!kw || hay.includes(kw)) && (!cat || q.category_zh === cat) &&
+        (!ex || q.exam === ex);
       el.classList.toggle('hide', !ok);
-      const link = links[q.id];
+      const link = links[q.uid];
       if (link) link.parentElement.style.display = ok ? '' : 'none';
       if (ok) n++;
+    });
+    // 目录：先收掉全空的「午前Ⅰ/Ⅱ」小节，再收掉整组都空掉的考期
+    toc.querySelectorAll('.tocpart-block').forEach(b => {
+      const shown = [...b.querySelectorAll('li')].some(li => li.style.display !== 'none');
+      b.style.display = shown ? '' : 'none';
+    });
+    toc.querySelectorAll('.tocgroup').forEach(g => {
+      const shown = [...g.querySelectorAll('.tocpart-block')].some(b => b.style.display !== 'none');
+      g.style.display = shown ? '' : 'none';
     });
     empty.style.display = n ? 'none' : 'block';
   }
   qInput.addEventListener('input', applyFilter);
   catSel.addEventListener('change', applyFilter);
+  examSel.addEventListener('change', () => { applyFilter(); refreshScore(); });
+  partSel.addEventListener('change', refreshScore);
 
   // ---------- 恢复上次作答 ----------
   DATA.forEach(q => {
-    const pick = state[q.id];
+    const pick = state[q.uid];
     if (!pick) return;
-    const el = cards[q.id];
+    const el = cards[q.uid];
     el.dataset.picked = pick;
     const opt = el.querySelector('.opt[data-label="' + pick + '"]');
     if (opt) opt.classList.add('sel');   // 只恢复选择状态，答案仍按开关控制
@@ -428,8 +511,12 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
 """
 
 
-def collect_images(questions, img_dir):
-    """把所有引用到的插图读成 data URI 字典（同一张图只存一份）。"""
+def collect_images(questions, img_dir, exam):
+    """把某考期引用到的插图读成 data URI 字典（同一张图只存一份）。
+
+    键是 "考期/文件名"：不同考期会有同名插图（如两边都有 21.png），
+    不带前缀会互相覆盖。
+    """
     names = set()
     for q in questions:
         for k in ("stem", "explain", "origin", "option_image", "stem_zh", "explain_zh", "origin_zh"):
@@ -443,16 +530,19 @@ def collect_images(questions, img_dir):
         path = os.path.join(img_dir, n)
         if os.path.exists(path):
             with open(path, "rb") as f:
-                imgs[n] = "data:image/png;base64," + base64.b64encode(f.read()).decode()
+                imgs[f"{exam}/{n}"] = "data:image/png;base64," + base64.b64encode(f.read()).decode()
         else:
-            print(f"  警告：缺插图 {n}")
+            print(f"  警告：缺插图 {exam}/{n}")
     return imgs
 
 
 def tag_images(q):
-    """把 <img src="xx.png"> 改写成 <img data-img="xx.png">，运行时再填 data URI。"""
+    """把 <img src="xx.png"> 改写成 <img data-img="考期/xx.png">，运行时再填 data URI。"""
+    exam = q.get("exam", "")
+
     def walk(text):
-        return re.sub(r'<img src="([^"]+)"[^>]*>', r'<img data-img="\1" alt="">', text or "")
+        return re.sub(r'<img src="([^"]+)"[^>]*>',
+                      rf'<img data-img="{exam}/\1" alt="">', text or "")
 
     for k in ("stem", "explain", "origin", "option_image",
               "stem_zh", "explain_zh", "origin_zh"):
@@ -466,52 +556,78 @@ def tag_images(q):
 
 def main():
     ap = argparse.ArgumentParser(description="生成单页中文题库")
-    ap.add_argument("--exam", default=EXAM)
+    ap.add_argument("--exam", default=EXAM, help="考期 ID，多个用逗号分隔，合并成一页")
     ap.add_argument("--root", default=ROOT)
     ap.add_argument("--out", default=None)
     args = ap.parse_args()
 
-    src_dir = os.path.join(args.root, args.exam)
-    data_path = os.path.join(src_dir, "questions_zh.json")
-    if not os.path.exists(data_path):
-        print(f"找不到 {data_path}，先跑 extract_questions.py 并完成翻译")
+    exams = [e.strip() for e in args.exam.split(",") if e.strip()]
+    if not exams:
+        print("--exam 至少要给一个考期")
         return 1
 
-    questions = json.load(open(data_path, encoding="utf-8"))
-    img_dir = os.path.join(src_dir, "img")
-    imgs = collect_images(questions, img_dir)
+    questions = []
+    for ex in exams:
+        data_path = os.path.join(args.root, ex, "questions_zh.json")
+        if not os.path.exists(data_path):
+            print(f"找不到 {data_path}，先跑 extract_questions.py --exam {ex} 并完成翻译")
+            return 1
+        for q in json.load(open(data_path, encoding="utf-8")):
+            q["exam"] = ex
+            q["exam_name"] = EXAM_NAME.get(ex, ex)
+            q["uid"] = f"q-{ex}-{q['id']}"      # 页面元素 id / 锚点 / 作答记录都用它（前缀 q- 让 id 不以数字开头）
+            questions.append(q)
+
+    imgs = {}
+    for ex in exams:
+        img_dir = os.path.join(args.root, ex, "img")
+        imgs.update(collect_images([q for q in questions if q["exam"] == ex], img_dir, ex))
     questions = [tag_images(q) for q in questions]
     n_img = sum(1 for q in questions for k in ("stem_zh", "explain_zh", "option_image")
                 if "data-img" in q.get(k, ""))
 
-    title = TITLE.get(args.exam, f"{args.exam} 中文题库")
-    h1 = title
-    parts = {}
-    for q in questions:
-        parts.setdefault(q["part"], []).append(q)
-    sub = "　·　".join(f"{'午前Ⅰ' if k == 'am1' else '午前Ⅱ'} {len(v)} 题"
-                     for k, v in sorted(parts.items()))
+    names = [EXAM_NAME.get(e, e) for e in exams]
+    if len(exams) == 1:
+        title = TITLE.get(exams[0], f"{exams[0]} 中文题库")
+        h1 = title
+    else:
+        h1 = "情報処理安全確保支援士 中文题库"
+        title = h1 + "（" + "・".join(names) + "）"
+
+    groups = []
+    for ex in exams:
+        counts = {}
+        for q in questions:
+            if q["exam"] == ex:
+                counts[q["part"]] = counts.get(q["part"], 0) + 1
+        body = "　".join(f"{PART_CN[k]} {v} 题" for k, v in sorted(counts.items()))
+        groups.append(f"{EXAM_NAME.get(ex, ex)}　{body}" if len(exams) > 1 else body)
+    sub = "　·　".join(groups)
     sub += f"　·　题干预解全部译为中文，题干与选项可一键切回日文原题　·　共 {len(questions)} 题"
 
-    foot = ("题目与解说取自 sc-siken.com（情報処理安全確保支援士 過去問解説）令和7年秋期，"
+    foot = (f"题目与解说取自 sc-siken.com（情報処理安全確保支援士 過去問解説）{'・'.join(names)}，"
             "版权归原站所有，本页仅为个人学习用途的离线整理；译文由 AI 辅助翻译，"
             "如与原题有出入以原题为准。")
 
     data = json.dumps(questions, ensure_ascii=False, separators=(",", ":"))
     data = data.replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
     imgjson = json.dumps(imgs, ensure_ascii=False, separators=(",", ":"))
+    examjson = json.dumps([{"id": e, "name": EXAM_NAME.get(e, e)} for e in exams],
+                          ensure_ascii=False, separators=(",", ":"))
 
     html = (HTML.replace("__TITLE__", title).replace("__H1__", h1)
                 .replace("__SUB__", sub).replace("__TOTAL__", str(len(questions)))
-                .replace("__FOOT__", foot).replace("__EXAM__", args.exam)
+                .replace("__FOOT__", foot)
                 .replace("__IMAGES__", imgjson.replace("<", "\\u003c"))
+                .replace("__EXAMS__", examjson)
                 .replace("__DATA__", data))
 
-    out = args.out or f"SC_{args.exam}_中文题库.html"
+    out = args.out or (f"SC_{exams[0]}_中文题库.html" if len(exams) == 1 else "SC_中文题库.html")
     with open(out, "w", encoding="utf-8") as f:
         f.write(html)
     size = os.path.getsize(out) / 1024
-    print(f"生成 {os.path.abspath(out)}　{size:.0f} KB　{len(questions)} 题　内嵌插图 {n_img} 处")
+    print(f"生成 {os.path.abspath(out)}　{size:.0f} KB　{len(questions)} 题"
+          f"（{'、'.join(names)}）　内嵌插图 {n_img} 处")
     return 0
 
 

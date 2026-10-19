@@ -49,10 +49,12 @@ def fetch_binary(url):
         return resp.status, resp.read()
 
 
-def collect_images(question, exam):
+def collect_images(question, exam, used=None):
     """遍历题目对象里所有 img 的远程地址，返回 (url -> 本地文件名)。
 
-    本地名优先取远程路径的文件名；重名时补一个短哈希前缀。
+    本地名优先取远程路径的文件名；不同题目之间的同名图（例如站点自带的
+    img/21.png 与跨站的 ap-siken.com/.../img/21.png）会加一个短哈希前缀区分，
+    因此 used 这个「已占用名字」表要跨题共用，主流程里传同一个 dict 进来。
     """
     urls = []
     for key in ("stem", "explain", "origin", "option_image"):
@@ -61,19 +63,21 @@ def collect_images(question, exam):
     for opt in question.get("options", []):
         urls += re.findall(r'<img[^>]*src="([^"]+)"', opt.get("text", ""))
 
-    mapping, used = {}, {}
+    if used is None:
+        used = {}
+    mapping = {}
     for u in dict.fromkeys(urls):                      # 去重且保持顺序
         base = os.path.basename(u.split("?")[0])
         if not base:
             continue
-        if base in used:
+        if base in used and used[base] != u:           # 同名不同图：加短哈希前缀
             base = hashlib.sha1(u.encode()).hexdigest()[:6] + "_" + base
         used[base] = u
         mapping[u] = base
     return mapping
 
 
-def download_images(mapping, out_dir):
+def download_images(mapping, out_dir, exam=EXAM):
     """把远程图下到本地 img/ 目录，返回 url -> 本地名 的最终映射。"""
     os.makedirs(out_dir, exist_ok=True)
     saved = {}
@@ -82,8 +86,8 @@ def download_images(mapping, out_dir):
         if os.path.exists(path) and os.path.getsize(path) > 200:
             saved[url] = name
             continue
-        # 相对路径（img/xx.png）挂在 sc-siken 下，绝对路径照原样取
-        full = url if url.startswith("http") else f"{SITE}/kakomon/{EXAM}/{url.lstrip('./')}"
+        # 相对路径（img/xx.png）挂在当前考期的 sc-siken 目录下，绝对路径照原样取
+        full = url if url.startswith("http") else f"{SITE}/kakomon/{exam}/{url.lstrip('./')}"
         try:
             status, body = fetch_binary(full)
         except (HTTPError, URLError, OSError) as e:
@@ -312,11 +316,11 @@ def main():
         questions.append(q)
 
     print("2) 收集并下载插图")
-    mapping = {}
+    mapping, used = {}, {}
     for q in questions:
-        mapping.update(collect_images(q, args.exam))
+        mapping.update(collect_images(q, args.exam, used))
     print(f"  共 {len(mapping)} 张内容插图")
-    img_map = download_images(mapping, os.path.join(src_dir, IMG_SUBDIR))
+    img_map = download_images(mapping, os.path.join(src_dir, IMG_SUBDIR), args.exam)
 
     print("3) 用本地文件名重写 img 后重新解析")
     for i, f in enumerate(files):
