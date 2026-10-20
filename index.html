@@ -49,6 +49,8 @@ aside li a{display:block;padding:6px 9px;border-radius:8px;color:var(--ink-2);fo
 aside li a:hover{background:#f2f4f8;color:var(--ink)}
 aside li a.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
 aside li a.done::after{content:"✓";float:right;color:var(--ok);font-weight:700}
+aside li a.wrong::after{content:"✗";float:right;color:var(--bad);font-weight:700}
+aside li a.todo::after{content:"○";float:right;color:var(--ink-3);font-weight:700;opacity:.5}
 aside .hint{margin:10px 8px 0;color:var(--ink-3);font-size:12px;line-height:1.7}
 main{display:flex;flex-direction:column;gap:20px;min-width:0}
 .q{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
@@ -149,7 +151,6 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
   <div class="topbar-in">
     <div class="brand">
       <h1>情報処理安全確保支援士 中文题库</h1>
-      <p class="sub">令和5年秋期　午前Ⅰ 30 题　午前Ⅱ 25 题　·　令和5年春期　午前Ⅰ 30 题　午前Ⅱ 25 题　·　令和6年秋期　午前Ⅰ 30 题　午前Ⅱ 25 题　·　令和6年春期　午前Ⅰ 30 题　午前Ⅱ 25 题　·　令和7年秋期　午前Ⅰ 30 题　午前Ⅱ 25 题　·　令和7年春期　午前Ⅰ 30 题　午前Ⅱ 25 题　·　题干预解全部译为中文，题干与选项可一键切回日文原题　·　共 330 题</p>
     </div>
     <div class="tools">
       <input id="q" type="search" placeholder="搜索题号 / 关键词（中・日）">
@@ -335,7 +336,14 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
     scoreEl.innerHTML = '已答 <b>' + done.length + '</b>/' + sc.length +
       (done.length ? '・正确 <b>' + right + '</b>（' + Math.round(right / done.length * 100) + '%）' : '');
     DATA.forEach(q => {
-      if (links[q.uid]) links[q.uid].classList.toggle('done', !!state[q.uid]);
+      const link = links[q.uid];
+      if (!link) return;
+      link.classList.remove('done', 'wrong', 'todo');
+      const pick = state[q.uid];
+      if (!pick) { link.classList.add('todo'); return; }   // 未作答：灰色空心圈
+      const el = cards[q.uid];
+      const right = el && el.querySelector('.opt[data-correct="true"]').dataset.label === pick;
+      link.classList.add(right ? 'done' : 'wrong');          // 对：绿勾 / 错：红叉
     });
   }
 
