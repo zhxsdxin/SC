@@ -66,12 +66,14 @@ main{display:flex;flex-direction:column;gap:20px;min-width:0}
 .stem{color:var(--ink);overflow-wrap:anywhere}
 .stem ul,.stem ol{margin:8px 0;padding-left:1.5em}
 .stem li{margin:3px 0}
-/* 题干与选项都备了中日两版，勾「显示日文原文」时原地切换，不留两块内容 */
+/* 勾「显示日文原题」时：题干与选项就地换成日文原题，并隐藏每题论点（topic）便于自测 */
 .lang-zh{display:block}
 .lang-jp{display:none}
 body.jp .lang-zh{display:none}
 body.jp .lang-jp{display:block}
-.lang-jp,.jpbody{font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic",
+body.jp .topic{display:none}
+body.jp .toc-topic{display:none}
+.jpbody{font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic",
   "Meiryo","Noto Sans JP",-apple-system,sans-serif}
 .none{color:var(--ink-3)}
 .opts{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
@@ -158,7 +160,7 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
       <select id="part" aria-label="正确率统计范围"></select>
       <select id="cat" aria-label="按分类筛选"></select>
       <label class="sw"><input type="checkbox" id="showAll">显示全部答案</label>
-      <label class="sw" title="题干与选项就地切换为日文原题"><input type="checkbox" id="showJp">显示日文原文</label>
+      <label class="sw" title="题干与选项就地切换为日文原题，并隐藏每题论点（便于自测）"><input type="checkbox" id="showJp">显示日文原题（隐藏论点）</label>
       <span class="score" id="score">已答 <b>0</b>/330</span>
     </div>
   </div>
@@ -167,7 +169,7 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
 <div class="layout">
   <aside>
     <nav id="toc"></nav>
-    <p class="hint">点选项即判分，答对为绿色、答错为红色，答案自动记录在本机。顶部可切换考期，并选择午前Ⅰ/Ⅱ/全部来统计正确率；切换「显示全部答案」可一次性核对整页，切换「显示日文原文」可把题干与选项就地换成日文原题。</p>
+    <p class="hint">点选项即判分，答对为绿色、答错为红色，答案自动记录在本机。顶部可切换考期，并选择午前Ⅰ/Ⅱ/全部来统计正确率；切换「显示全部答案」可一次性核对整页，切换「显示日文原题」可把题干与选项换成日文原题，并隐藏每题论点以便自测。</p>
   </aside>
   <main id="list"></main>
 </div>
@@ -248,7 +250,7 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
     const optionBlock = q.option_image
       ? '<div class="optimg">' + q.option_image + '</div>'
       : '';
-    // 选项也带中日两版，切换语言时就地换掉文字，选中/判分状态不受影响
+    // 勾「显示日文原题」时题干与选项就地换日文，并隐藏论点；选中/判分状态不受影响
     const opts = q.options.map((o, i) => {
       const zh = (q.options_zh[i] || '').trim() || NONE_ZH;
       const jp = (o.text || '').trim() || NONE_JP;
@@ -264,7 +266,7 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
     el.innerHTML =
       '<div class="qhead">' +
         '<span class="badge">' + PART_NAME[q.part] + '・問' + q.no + '</span>' +
-        '<h2>' + q.topic_zh + '</h2>' +
+        '<h2 class="topic">' + q.topic_zh + '</h2>' +
         '<span class="tag exam">' + q.exam_name + '</span>' +
         '<span class="tag">' + q.category_zh + '</span>' +
       '</div>' +
@@ -370,7 +372,7 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
     });
   });
 
-  // 全局语言切换：题干与选项就地换成日文原题，选择与判分状态照旧，偏好记在本机
+  // 显示日文原题 + 隐藏论点：勾选后题干/选项就地换日文，并隐藏每题论点，偏好记在本机
   const LANG_KEY = 'sc-' + EXAMS.map(e => e.id).join('+') + '-lang-v1';
   const applyLang = on => document.body.classList.toggle('jp', on);
   const savedLang = () => {                  // 兼容旧版单考期页面存下的偏好
@@ -400,7 +402,7 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
         if (!sub.length) return '';
         return '<div class="tocpart-block" data-part="' + part + '">' +
           '<p class="tocpart">' + PART_NAME[part] + '　' + sub.length + ' 题</p><ol>' +
-          sub.map(q => '<li><a href="#' + q.uid + '">問' + q.no + '　' + q.topic_zh + '</a></li>').join('') +
+          sub.map(q => '<li><a href="#' + q.uid + '">問' + q.no + '　<span class="toc-topic">' + q.topic_zh + '</span></a></li>').join('') +
           '</ol></div>';
       }).join('') + '</div>';
   }).join('');
