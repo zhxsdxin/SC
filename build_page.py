@@ -276,6 +276,24 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
   catSel.innerHTML = '<option value="">全部分类</option>' +
     cats.map(c => '<option value="' + c.replace(/"/g, '&quot;') + '">' + c + '</option>').join('');
 
+  // 筛选下拉记住上次选择（刷新后恢复，避免总是回到默认「全部考期」）
+  const FILTER_KEY = 'sc-' + EXAMS.map(e => e.id).join('+') + '-filter-v1';
+  const setSel = (sel, v) => {
+    if (!v) return;
+    for (const o of sel.options) if (o.value === v) { sel.value = v; return; }
+  };
+  const saveFilter = () =>
+    localStorage.setItem(FILTER_KEY, JSON.stringify({
+      exam: examSel.value, part: partSel.value, cat: catSel.value
+    }));
+  let savedFilter = {};
+  try { savedFilter = JSON.parse(localStorage.getItem(FILTER_KEY) || '{}'); } catch (e) {}
+  if (savedFilter && typeof savedFilter === 'object') {
+    setSel(examSel, savedFilter.exam);
+    setSel(partSel, savedFilter.part);
+    setSel(catSel, savedFilter.cat);
+  }
+
   // ---------- 生成卡片 ----------
   const cards = {};
   DATA.forEach((q, idx) => {
@@ -497,9 +515,9 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
     empty.style.display = n ? 'none' : 'block';
   }
   qInput.addEventListener('input', applyFilter);
-  catSel.addEventListener('change', applyFilter);
-  examSel.addEventListener('change', () => { applyFilter(); refreshScore(); });
-  partSel.addEventListener('change', refreshScore);
+  catSel.addEventListener('change', () => { applyFilter(); saveFilter(); });
+  examSel.addEventListener('change', () => { applyFilter(); refreshScore(); saveFilter(); });
+  partSel.addEventListener('change', () => { refreshScore(); saveFilter(); });
 
   // ---------- 恢复上次作答 ----------
   DATA.forEach(q => {
@@ -516,6 +534,7 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
   window.addEventListener('scroll', () => totop.style.display = window.scrollY > 600 ? 'block' : 'none');
   totop.addEventListener('click', () => window.scrollTo({ top: 0 }));
 
+  applyFilter();   // 应用恢复后的考期/分类筛选
   refreshScore();
 
   // 带 #锚点 打开时，等卡片渲染完再滚过去
