@@ -98,8 +98,9 @@ main{display:flex;flex-direction:column;gap:20px;min-width:0}
   box-shadow:var(--shadow);padding:20px 24px 18px;scroll-margin-top:110px}
 .q.hide{display:none}
 .qhead{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline;margin-bottom:12px}
-.badge{font-size:12px;font-weight:650;color:var(--accent);background:var(--accent-soft);
-  border-radius:999px;padding:3px 10px;white-space:nowrap}
+.badge{display:inline-block;font-size:12px;font-weight:650;color:var(--accent);background:var(--accent-soft);
+  border-radius:999px;padding:3px 10px;white-space:nowrap;text-decoration:none;transition:.14s}
+.badge:hover{background:var(--accent);color:#fff}
 .qhead h2{margin:0;font-size:16.5px;font-weight:650;line-height:1.5;flex:1 1 240px;min-width:180px}
 .tag{font-size:12px;color:var(--ink-3);white-space:nowrap}
 .tag.exam{color:var(--ink-2);background:#f2f4f8;border-radius:999px;padding:2px 9px}
@@ -306,7 +307,7 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
 
     el.innerHTML =
       '<div class="qhead">' +
-        '<span class="badge">' + PART_NAME[q.part] + '・問' + q.no + '</span>' +
+        '<a class="badge" href="' + q.source_url + '" target="_blank" rel="noopener noreferrer" title="跳转到原题（sc-siken.com）">' + PART_NAME[q.part] + '・問' + q.no + '</a>' +
         '<h2 class="topic">' + q.topic_zh + '</h2>' +
         '<span class="tag exam">' + q.exam_name + '</span>' +
         '<span class="tag">' + q.category_zh + '</span>' +
