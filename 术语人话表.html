@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SC 考试常见术语 · 人话解释</title>
+<style>
+:root{
+  --bg:#f5f6f8; --card:#fff; --ink:#1f2430; --ink-2:#5b6473; --ink-3:#8b95a5;
+  --line:#e4e7ec; --accent:#2f5bd7; --accent-soft:#eef2fd;
+  --ok:#2f7d4f; --warn:#b46b00; --radius:12px;
+  --shadow:0 1px 2px rgba(16,24,40,.05),0 6px 20px -12px rgba(16,24,40,.18);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.8 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;}
+.wrap{max-width:880px;margin:0 auto;padding:40px 20px 80px;}
+header h1{font-size:28px;margin:0 0 6px;letter-spacing:.3px}
+header .sub{color:var(--ink-2);margin:0 0 8px;font-size:15px}
+header .meta{color:var(--ink-3);font-size:13px;margin:0 0 24px}
+header .back{display:inline-block;font-size:14px;margin:0 0 24px;color:var(--accent);text-decoration:none}
+header .back:hover{text-decoration:underline}
+nav.toc{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:14px 18px;margin:0 0 32px;box-shadow:var(--shadow);font-size:14px;line-height:2}
+nav.toc b{color:var(--ink-2);font-weight:600}
+nav.toc a{color:var(--accent);text-decoration:none;margin-right:14px;white-space:nowrap}
+nav.toc a:hover{text-decoration:underline}
+h2.sec{font-size:20px;margin:44px 0 16px;padding-bottom:8px;border-bottom:2px solid var(--accent-soft);
+  color:var(--ink);scroll-margin-top:20px}
+h2.sec .n{color:var(--accent);font-weight:700;margin-right:8px}
+.term{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:16px 20px;margin:0 0 14px;box-shadow:var(--shadow)}
+.term .name{font-size:17px;font-weight:700;margin:0 0 8px}
+.term .name .en{color:var(--ink-3);font-weight:500;font-size:14px}
+.metaphor{display:inline-block;background:var(--accent-soft);color:var(--accent);
+  font-weight:600;font-size:14px;padding:2px 12px;border-radius:999px;margin:0 0 10px}
+.row{margin:6px 0;color:var(--ink)}
+.row .lbl{display:inline-block;min-width:52px;font-weight:700;color:var(--ink-2);font-size:14px}
+.row.eg{color:var(--ink)}
+.row.eg .lbl{color:var(--warn)}
+.row.one .lbl{color:var(--ok)}
+.row.one{font-weight:600}
+footer{margin-top:56px;padding-top:16px;border-top:1px solid var(--line);color:var(--ink-3);font-size:13px}
+@media print{body{background:#fff}.term{box-shadow:none;break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>SC 考试常见术语 · 人话解释</h1>
+  <p class="sub">信息安全・网络・数据库・服务管理・项目管理高频概念，一句比喻 + 大白话 + 例子 + 一句话总结。</p>
+  <p class="meta">术语取自本题库（令和元年～7年午前Ⅰ・Ⅱ）实际出现的概念 · 共 10 类 69 条 · 译文与解释供学习参考，以原题/权威定义为准</p>
+  <a class="back" href="index.html">← 返回中文题库</a>
+</header>
+
+<nav class="toc">
+  <b>目录</b><br>
+  <a href="#s1">一、攻击与威胁</a><a href="#s2">二、加密与认证</a><a href="#s3">三、邮件与 Web 防护</a>
+  <a href="#s4">四、防御与监控</a><a href="#s5">五、身份与访问控制</a><a href="#s6">六、网络与基础设施</a>
+  <a href="#s7">七、数据库</a><a href="#s8">八、系统与服务管理</a><a href="#s9">九、项目管理与挣值</a><a href="#s10">十、风险与合规</a>
+</nav>
+
+<h2 class="sec" id="s1"><span class="n">一</span>攻击与威胁</h2>
+
+<div class="term">
+  <p class="name">MITB <span class="en">Man-in-the-Browser，浏览器中间人攻击</span></p>
+  <span class="metaphor">浏览器里的内鬼</span>
+  <p class="row"><span class="lbl">人话</span>你在网上正常操作，黑客却通过先钻进你浏览器的恶意程序，偷看或篡改你提交的信息。它躲在你和网站之间，你和网站都看不出异常。</p>
+  <p class="row eg"><span class="lbl">例子</span>你转账给小王，木马偷偷把收款账号换成黑客的。</p>
+  <p class="row one"><span class="lbl">一句话</span>你以为自己在操作，其实背后有人替你改数据。</p>
+</div>
+
+<div class="term">
+  <p class="name">MITM <span class="en">Man-in-the-Middle，中间人攻击</span></p>
+  <span class="metaphor">冒充邮差偷看信件</span>
+  <p class="row"><span class="lbl">人话</span>黑客坐在通信双方中间，冒充彼此转发消息，既能偷看内容也能动手脚，而双方以为在直接对话。</p>
+  <p class="row eg"><span class="lbl">例子</span>连了假 WiFi，你以为在跟银行服务器说话，其实是黑客的机器在转发。</p>
+  <p class="row one"><span class="lbl">一句话</span>通信被第三方中转，机密和真实性一起丢。</p>
+</div>
+
+<div class="term">
+  <p class="name">XSS <span class="en">Cross-Site Scripting，跨站脚本攻击</span></p>
+  <span class="metaphor">往别人网页里塞私货</span>
+  <p class="row"><span class="lbl">人话</span>攻击者把恶意脚本塞进正常网页，别人一打开脚本就在其浏览器里跑，偷 cookie、改页面都行。</p>
+  <p class="row eg"><span class="lbl">例子</span>论坛留言没过滤内容，有人发了带脚本的帖子，谁点开谁中招。</p>
+  <p class="row one"><span class="lbl">一句话</span>你的浏览器替攻击者执行了不该执行的代码。</p>
+</div>
+
+<div class="term">
+  <p class="name">CSRF <span class="en">Cross-Site Request Forgery，跨站请求伪造</span></p>
+  <span class="metaphor">借你的手，办你的证</span>
+  <p class="row"><span class="lbl">人话</span>你已登录某网站，攻击者诱导你的浏览器在不知情中带上登录凭证发出请求，冒充你办事。（与 XSS 区别：XSS 是注入脚本执行，CSRF 是冒用身份发请求）</p>
+  <p class="row eg"><span class="lbl">例子</span>登录着网银时点了钓鱼链接，后台自动触发了一笔转账。</p>
+  <p class="row one"><span class="lbl">一句话</span>用你的身份，办你没同意的事。</p>
+</div>
+
+<div class="term">
+  <p class="name">SQL 注入 <span class="en">SQL Injection</span></p>
+  <span class="metaphor">问路时夹带私货指令</span>
+  <p class="row"><span class="lbl">人话</span>攻击者在输入框里塞进 SQL 片段，骗过程序直接进数据库执行，从而拖库、改数据、绕过登录。</p>
+  <p class="row eg"><span class="lbl">例子</span>登录框用户名填 <code>' OR '1'='1</code>，条件恒真，直接登进别人账户。</p>
+  <p class="row one"><span class="lbl">一句话</span>把"数据"说成"命令"，让数据库言听计从。</p>
+</div>
+
+<div class="term">
+  <p class="name">DDoS <span class="en">Distributed Denial-of-Service，分布式拒绝服务</span></p>
+  <span class="metaphor">一群人同时堵门</span>
+  <p class="row"><span class="lbl">人话</span>控制大量"肉鸡"同时猛刷一个服务，把带宽或资源占满，让正常用户用不了。</p>
+  <p class="row eg"><span class="lbl">例子</span>大促前对手网站被海量假流量打到打不开。</p>
+  <p class="row one"><span class="lbl">一句话</span>不是偷你东西，是让你没法做生意。</p>
+</div>
+
+<div class="term">
+  <p class="name">APT <span class="en">Advanced Persistent Threat，高级持续性威胁</span></p>
+  <span class="metaphor">不敲门、长期潜伏的高级小偷</span>
+  <p class="row"><span class="lbl">人话</span>有组织、有资源、有耐心的攻击者，长期潜伏目标网络，悄悄摸清环境、窃取情报，很难被发现。</p>
+  <p class="row eg"><span class="lbl">例子</span>先钓一个员工，再一层层内网横移，潜伏数月偷走图纸。</p>
+  <p class="row one"><span class="lbl">一句话</span>不是顺手牵羊，是盯上你、住进来的专业团队。</p>
+</div>
+
+<div class="term">
+  <p class="name">RAT <span class="en">Remote Access Trojan，远程控制木马</span></p>
+  <span class="metaphor">留了一把远程开门的钥匙</span>
+  <p class="row"><span class="lbl">人话</span>中招的电脑被装上木马，攻击者能远程看屏幕、开摄像头、传文件、敲键盘，像在用自己的电脑。</p>
+  <p class="row eg"><span class="lbl">例子</span>电脑被控后，黑客远程打开你的文件、录屏，再转发出去。</p>
+  <p class="row one"><span class="lbl">一句话</span>你的电脑，别人也能用。</p>
+</div>
+
+<div class="term">
+  <p class="name">C&amp;C / C2 <span class="en">Command and Control，命令与控制服务器</span></p>
+  <span class="metaphor">木马军的指挥部</span>
+  <p class="row"><span class="lbl">人话</span>僵尸网络里，被控机器（肉鸡）定期来这台服务器领指令、汇报战果；打掉 C&amp;C，整个网络就散。</p>
+  <p class="row eg"><span class="lbl">例子</span>安全人员定位并封掉某个 C&amp;C 域名，成片上线的木马立刻变聋哑。</p>
+  <p class="row one"><span class="lbl">一句话</span>肉鸡的"班主任"，擒贼先擒它。</p>
+</div>
+
+<div class="term">
+  <p class="name">侧信道攻击 <span class="en">Side-Channel Attack</span></p>
+  <span class="metaphor">不看账本，看打算盘的声音和手速</span>
+  <p class="row"><span class="lbl">人话</span>不正面破解密码，而是从运行时的"副产品"——耗电、电磁、耗时、声音——反推密钥或明文。</p>
+  <p class="row eg"><span class="lbl">例子</span>测加密芯片每次运算的耗电波动，推算出它用的私钥。</p>
+  <p class="row one"><span class="lbl">一句话</span>密码本身没泄，是"干活时的动静"泄了底。</p>
+</div>
+
+<div class="term">
+  <p class="name">钓鱼 / 社会工程 <span class="en">Phishing / Social Engineering</span></p>
+  <span class="metaphor">披着制服的骗子</span>
+  <p class="row"><span class="lbl">人话</span>不攻技术，专攻人——伪装成可信角色（银行、IT、领导），骗你点链接、交密码、给验证码。</p>
+  <p class="row eg"><span class="lbl">例子</span>收到"IT 部门"邮件说密码将过期，点进去是个一模一样的假登录页。</p>
+  <p class="row one"><span class="lbl">一句话</span>最薄的防线，往往是坐在屏幕前的人。</p>
+</div>
+
+<h2 class="sec" id="s2"><span class="n">二</span>加密与认证</h2>
+
+<div class="term">
+  <p class="name">PKI <span class="en">Public Key Infrastructure，公钥基础设施</span></p>
+  <span class="metaphor">数字世界的"身份证 + 公安局"体系</span>
+  <p class="row"><span class="lbl">人话</span>用"证书 + 权威 CA + 一套流程"解决"这人/这网站到底是谁"，让公钥加密能安全落地。</p>
+  <p class="row eg"><span class="lbl">例子</span>浏览器地址栏的小锁，就是在用 PKI 验证网站身份。</p>
+  <p class="row one"><span class="lbl">一句话</span>没有 PKI，公钥不知道对面是谁，等于抓瞎。</p>
+</div>
+
+<div class="term">
+  <p class="name">数字签名 <span class="en">Digital Signature</span></p>
+  <span class="metaphor">带防伪水印的签名章</span>
+  <p class="row"><span class="lbl">人话</span>用私钥对内容（的哈希）盖章，任何人用你的公钥都能验真伪：确认是你签的、且内容没被改过。（管"真实完整"，不管"保密"）</p>
+  <p class="row eg"><span class="lbl">例子</span>软件安装包附上官方签名，你才能确认它没被篡改、确实来自厂商。</p>
+  <p class="row one"><span class="lbl">一句话</span>既能防冒充，又能防篡改。</p>
+</div>
+
+<div class="term">
+  <p class="name">哈希 / SHA <span class="en">Hash / Secure Hash Algorithm</span></p>
+  <span class="metaphor">文件的"指纹"</span>
+  <p class="row"><span class="lbl">人话</span>把任意长度数据压成一串定长"摘要"，改一个字节摘要就大变；用来校验完整性、存密码（加盐后）。</p>
+  <p class="row eg"><span class="lbl">例子</span>下载文件后比对官方给的 SHA-256，一致才放心。</p>
+  <p class="row one"><span class="lbl">一句话</span>正向飞快、反向几乎不可能，专揪"被动过手脚"。</p>
+</div>
+
+<div class="term">
+  <p class="name">AES / RSA <span class="en">对称加密 / 公钥加密</span></p>
+  <span class="metaphor">同一把钥匙 vs 一把锁配一把钥匙</span>
+  <p class="row"><span class="lbl">人话</span>AES 加解密用同一密钥，快，适合加密大量数据；RSA 用公钥锁、私钥开，慢，适合安全地送密钥或签名。</p>
+  <p class="row eg"><span class="lbl">例子</span>TLS 里先用 RSA/ECDHE 安全商定出会话密钥，再用 AES 加密正文。</p>
+  <p class="row one"><span class="lbl">一句话</span>一个拼速度，一个拼安全交换；真用起来常搭配。</p>
+</div>
+
+<div class="term">
+  <p class="name">TLS / SSL</p>
+  <span class="metaphor">通话外面的防窃听密封袋</span>
+  <p class="row"><span class="lbl">人话</span>在应用和网络之间加一层，把传输内容加密、验明服务器身份、防篡改；HTTPS 就是靠它。</p>
+  <p class="row eg"><span class="lbl">例子</span>网址从 http 变 https、有了小锁，中间人看不到你填的密码。</p>
+  <p class="row one"><span class="lbl">一句话</span>让"网上说的话"只有该听的人能听懂。</p>
+</div>
+
+<div class="term">
+  <p class="name">证书 / CA / CRL <span class="en">Certificate / Certificate Authority / Certificate Revocation List</span></p>
+  <span class="metaphor">身份证、签发公安局、挂失名单</span>
+  <p class="row"><span class="lbl">人话</span>CA 给网站/人签发数字证书证明身份；证书若泄露或过期就进"吊销名单(CRL/OCSP)"，别人据此不再信它。</p>
+  <p class="row eg"><span class="lbl">例子</span>某网站私钥泄露，CA 吊销其证书，浏览器立刻报警。</p>
+  <p class="row one"><span class="lbl">一句话</span>有权威发证，也得有办法收回作废的证。</p>
+</div>
+
+<div class="term">
+  <p class="name">PQC <span class="en">Post-Quantum Cryptography，后量子密码</span></p>
+  <span class="metaphor">给密码学换一块抗地震的新地基</span>
+  <p class="row"><span class="lbl">人话</span>量子计算机会快速破解 RSA/ECC 等现有公钥算法，PQC 是提前研发、迁移到能扛量子攻击的新算法。</p>
+  <p class="row eg"><span class="lbl">例子</span>NIST 在标准化一批抗量子算法，供未来长期保密数据使用。</p>
+  <p class="row one"><span class="lbl">一句话</span>今天的密文，要为明天的量子计算机提前上锁。</p>
+</div>
+
+<div class="term">
+  <p class="name">MFA / 多因素认证 <span class="en">Multi-Factor Authentication / OTP</span></p>
+  <span class="metaphor">进门要钥匙 + 指纹 + 口令</span>
+  <p class="row"><span class="lbl">人话</span>登录不只看"你知道的"（密码），还要"你有的"（手机/令牌动态码）或"你本身的"（指纹/人脸），多者叠加。</p>
+  <p class="row eg"><span class="lbl">例子</span>转账时除了密码，还要输入手机 App 刷新的 6 位动态码。</p>
+  <p class="row one"><span class="lbl">一句话</span>光偷到密码，也进不来。</p>
+</div>
+
+<h2 class="sec" id="s3"><span class="n">三</span>邮件与 Web 防护</h2>
+
+<div class="term">
+  <p class="name">WAF <span class="en">Web Application Firewall，Web 应用防火墙</span></p>
+  <span class="metaphor">网站门口专抓可疑请求的安检门</span>
+  <p class="row"><span class="lbl">人话</span>守在 Web 服务器前，按规则识别并拦截 SQL 注入、XSS 之类的恶意请求，放行正常流量。</p>
+  <p class="row eg"><span class="lbl">例子</span>拦掉带 <code>' OR 1=1</code> 的登录尝试，请求根本到不了数据库。</p>
+  <p class="row one"><span class="lbl">一句话</span>给网站加一道专门挡"应用层攻击"的闸。</p>
+</div>
+
+<div class="term">
+  <p class="name">DKIM / SPF / DMARC <span class="en">邮件防伪三件套</span></p>
+  <span class="metaphor">盖公章 + 列白名单 + 规定怎么核对</span>
+  <p class="row"><span class="lbl">人话</span>SPF 声明"哪些服务器能代表我发信"；DKIM 给邮件加防伪签名；DMARC 规定两者不一致时怎么处理（拒收/隔离）。</p>
+  <p class="row eg"><span class="lbl">例子</span>三者配好，伪造"你公司域名"的钓鱼邮件会被直接拒收。</p>
+  <p class="row one"><span class="lbl">一句话</span>让"假冒发件人"的邮件现形、被挡。</p>
+</div>
+
+<div class="term">
+  <p class="name">HSTS <span class="en">HTTP Strict Transport Security</span></p>
+  <span class="metaphor">强制走加密通道，不许抄近路</span>
+  <p class="row"><span class="lbl">人话</span>网站告诉浏览器"以后只准用 HTTPS 连我"，堵住首次被降级成 http 的中间人劫持。</p>
+  <p class="row eg"><span class="lbl">例子</span>即使输成 http，浏览器也自动跳 https，不给窃听机会。</p>
+  <p class="row one"><span class="lbl">一句话</span>把"能不能加密"从可选变成强制。</p>
+</div>
+
+<div class="term">
+  <p class="name">OP25B <span class="en">Outbound Port 25 Blocking，出站 25 端口封锁</span></p>
+  <span class="metaphor">封死家用宽带直连发信的后门</span>
+  <p class="row"><span class="lbl">人话</span>运营商封掉家庭/普通宽带的 25 号端口，逼大家走官方 SMTP 服务器发信，从源头减少垃圾/钓鱼邮件和僵尸发信。</p>
+  <p class="row eg"><span class="lbl">例子</span>在家自建邮件服务器直连外网发信发不出去，必须经服务商中转。</p>
+  <p class="row one"><span class="lbl">一句话</span>堵住"任意电脑都能直发邮件"的口子。</p>
+</div>
+
+<div class="term">
+  <p class="name">DNSSEC</p>
+  <span class="metaphor">给域名查询结果盖防伪钢印</span>
+  <p class="row"><span class="lbl">人话</span>给 DNS 记录加数字签名，让解析结果可验证真伪，防"假域名劫持"把你导去钓鱼站。</p>
+  <p class="row eg"><span class="lbl">例子</span>查银行官网，DNSSEC 验证失败就拒绝返回假 IP。</p>
+  <p class="row one"><span class="lbl">一句话</span>让"域名→IP"这一步也能验真。</p>
+</div>
+
+<h2 class="sec" id="s4"><span class="n">四</span>防御与监控</h2>
+
+<div class="term">
+  <p class="name">IDS / IPS <span class="en">入侵检测 / 入侵防御系统</span></p>
+  <span class="metaphor">监控摄像头 vs 带闸机的保安</span>
+  <p class="row"><span class="lbl">人话</span>IDS 盯流量、发现可疑就报警（只看不动手）；IPS 更进一步，能实时拦截恶意流量（边看边挡）。</p>
+  <p class="row eg"><span class="lbl">例子</span>IDS 记录到内网扫描，IPS 直接把探测包丢掉并告警。</p>
+  <p class="row one"><span class="lbl">一句话</span>一个只喊，一个边喊边拦。</p>
+</div>
+
+<div class="term">
+  <p class="name">SIEM <span class="en">Security Information and Event Management，安全信息和事件管理</span></p>
+  <span class="metaphor">把各地监控接到一个指挥大屏</span>
+  <p class="row"><span class="lbl">人话</span>汇总各设备/系统的日志与告警，关联分析，从海量线索里捞出真正的攻击链。</p>
+  <p class="row eg"><span class="lbl">例子</span>单看一台服务器没事，SIEM 关联发现"同一账号半夜从多地登录"，这才暴露入侵。</p>
+  <p class="row one"><span class="lbl">一句话</span>把散落的线索，拼成完整的案发现场。</p>
+</div>
+
+<div class="term">
+  <p class="name">SOC <span class="en">Security Operations Center，安全运营中心</span></p>
+  <span class="metaphor">7×24 的安全值班室</span>
+  <p class="row"><span class="lbl">人话</span>专门的团队 + 工具，全天候监控、研判、处置安全事件，是"人 + 流程 + 技术"的运转中枢。</p>
+  <p class="row eg"><span class="lbl">例子</span>夜里 SIEM 告警，SOC 分析师连夜确认并隔离了中招主机。</p>
+  <p class="row one"><span class="lbl">一句话</span>买一堆设备不够，得有人盯着、能动起来。</p>
+</div>
+
+<div class="term">
+  <p class="name">CASB <span class="en">Cloud Access Security Broker，云访问安全代理</span></p>
+  <span class="metaphor">云服务门口的统一安检 + 登记处</span>
+  <p class="row"><span class="lbl">人话</span>架在用户和云服务之间，统一做身份认证、权限、加密、审计，看清并管住"谁在用哪些云、传了啥"。</p>
+  <p class="row eg"><span class="lbl">例子</span>员工用私人网盘传公司文件，CASB 拦下并告警。</p>
+  <p class="row one"><span class="lbl">一句话</span>让影子 IT 和云上数据也纳入管控。</p>
+</div>
+
+<div class="term">
+  <p class="name">防火墙 / 包过滤 / 状态检测 <span class="en">Firewall / Packet Filtering / Stateful Inspection</span></p>
+  <span class="metaphor">门卫从"看脸"到"看关系"</span>
+  <p class="row"><span class="lbl">人话</span>包过滤按 IP/端口逐包放行（不看上下文）；状态检测记住连接的来龙去脉，只放行属于合法会话的包，更聪明也更难骗。</p>
+  <p class="row eg"><span class="lbl">例子</span>外网主动进来的包默认拒，只有你先连出去建立的回包才放行。</p>
+  <p class="row one"><span class="lbl">一句话</span>从"单个包审问"进化到"整条对话跟踪"。</p>
+</div>
+
+<h2 class="sec" id="s5"><span class="n">五</span>身份与访问控制</h2>
+
+<div class="term">
+  <p class="name">SSO <span class="en">Single Sign-On，单点登录</span></p>
+  <span class="metaphor">一张门禁卡刷遍全公司</span>
+  <p class="row"><span class="lbl">人话</span>登录一次，就能访问多个互信系统，不用每个系统各记一套账号密码。</p>
+  <p class="row eg"><span class="lbl">例子</span>用公司账号登录后，直接进邮箱、OA、代码库，无需反复登录。</p>
+  <p class="row one"><span class="lbl">一句话</span>少记很多密码，但门户一旦失守全线沦陷。</p>
+</div>
+
+<div class="term">
+  <p class="name">SAML / OAuth / OIDC <span class="en">身份联邦三件套</span></p>
+  <span class="metaphor">让"可信机构"替你证明你是谁</span>
+  <p class="row"><span class="lbl">人话</span>SAML 用签名的"断言"在系统间传递登录身份；OAuth 管"授权"（让 App 有限度代你访问）；OIDC 在 OAuth 之上补上"身份认证"。</p>
+  <p class="row eg"><span class="lbl">例子</span>用微信/公司账号登录第三方网站，就是这套在背后跑。</p>
+  <p class="row one"><span class="lbl">一句话</span>一个管"你是谁"，一个管"你能动我什么"，别混。</p>
+</div>
+
+<div class="term">
+  <p class="name">RADIUS</p>
+  <span class="metaphor">网络准入的统一门卫</span>
+  <p class="row"><span class="lbl">人话</span>集中的认证/授权/计费服务器，管"谁能接进网络、能给什么权限"，常用于 WiFi、VPN、交换机准入。</p>
+  <p class="row eg"><span class="lbl">例子</span>连公司 WiFi 要过的账号校验，后台就是 RADIUS。</p>
+  <p class="row one"><span class="lbl">一句话</span>把"进门资格"收到一处统一发落。</p>
+</div>
+
+<div class="term">
+  <p class="name">FIDO / 无密码认证 <span class="en">FIDO / Passwordless</span></p>
+  <span class="metaphor">用指纹/安全键当面验人，不靠背密码</span>
+  <p class="row"><span class="lbl">人话</span>基于公钥、本地生物识别或硬件安全键完成认证，服务端不存密码，天然抗钓鱼和拖库。</p>
+  <p class="row eg"><span class="lbl">例子</span>插上硬件安全键或按指纹即可登录，钓鱼网站骗不到你的凭证。</p>
+  <p class="row one"><span class="lbl">一句话</span>没有可偷的密码，钓鱼自然失效。</p>
+</div>
+
+<div class="term">
+  <p class="name">RBAC / DAC / MAC <span class="en">基于角色 / 自主 / 强制访问控制</span></p>
+  <span class="metaphor">按职位发权限 vs 自己说了算 vs 制度强制</span>
+  <p class="row"><span class="lbl">人话</span>DAC 由资源主人自己定谁能访问；MAC 由系统按密级强制管控（军政常用）；RBAC 按"角色"批量授权，最平衡、最常用。</p>
+  <p class="row eg"><span class="lbl">例子</span>RBAC 里"财务角色"一批人自动获得报销系统权限。</p>
+  <p class="row one"><span class="lbl">一句话</span>权限交给谁定，决定了管理的松紧。</p>
+</div>
+
+<div class="term">
+  <p class="name">NAPT / NAT <span class="en">网络 / 端口地址转换</span></p>
+  <span class="metaphor">一栋楼一个门牌，内部房间靠总机转接</span>
+  <p class="row"><span class="lbl">人话</span>让多台内网设备共用一个公网 IP 出门，NAPT 再用端口区分是哪台设备，顺带挡住外网直接摸进来。</p>
+  <p class="row eg"><span class="lbl">例子</span>全家设备共用一个公网 IP 上网，路由器就是靠 NAPT 分流。</p>
+  <p class="row one"><span class="lbl">一句话</span>省 IP + 天然遮挡内网，但不等于防火墙。</p>
+</div>
+
+<div class="term">
+  <p class="name">VPN / IPsec</p>
+  <span class="metaphor">在公用马路上挖一条专用隧道</span>
+  <p class="row"><span class="lbl">人话</span>VPN 把远程/异地网络在公网上拉成一条加密"专线"；IPsec 是常用的那套"封装 + 加密 + 认证"协议。</p>
+  <p class="row eg"><span class="lbl">例子</span>出差连公司 VPN，像坐在办公室一样访问内网系统。</p>
+  <p class="row one"><span class="lbl">一句话</span>公网当专线用，前提是加密和认证都到位。</p>
+</div>
+
+<h2 class="sec" id="s6"><span class="n">六</span>网络与基础设施</h2>
+
+<div class="term">
+  <p class="name">SDN <span class="en">Software-Defined Networking，软件定义网络</span></p>
+  <span class="metaphor">网络设备的"遥控中枢"</span>
+  <p class="row"><span class="lbl">人话</span>把"转发"和"控制"分开，用软件集中编程控制全网流向，不用一台台设备手动配。</p>
+  <p class="row eg"><span class="lbl">例子</span>数据中心用控制器一键调整链路策略，应对突发流量。</p>
+  <p class="row one"><span class="lbl">一句话</span>网络从"拼硬件配置"变成"写软件调度"。</p>
+</div>
+
+<div class="term">
+  <p class="name">NFV <span class="en">Network Functions Virtualization，网络功能虚拟化</span></p>
+  <span class="metaphor">把专用机房设备换成通用服务器上的 App</span>
+  <p class="row"><span class="lbl">人话</span>防火墙、负载均衡等网元不再用专用硬件，改成跑在通用服务器上的软件，灵活扩容、省钱。</p>
+  <p class="row eg"><span class="lbl">例子</span>促销临时加个虚拟防火墙实例，几分钟上线。</p>
+  <p class="row one"><span class="lbl">一句话</span>专用机柜 → 通用机房的软件，弹性至上。</p>
+</div>
+
+<div class="term">
+  <p class="name">CSMA/CD <span class="en">载波侦听多路访问 / 冲突检测</span></p>
+  <span class="metaphor">开会时先听有没有人讲，撞车就都停下</span>
+  <p class="row"><span class="lbl">人话</span>以太网老规矩：发数据前先侦听线路，传输中检测冲突，撞了就退避重发，是共享介质时代的秩序。</p>
+  <p class="row eg"><span class="lbl">例子</span>老式集线器环境下两台同时说话会冲突，靠它退避重来。</p>
+  <p class="row one"><span class="lbl">一句话</span>先听后说、边听边说、撞了就撤。</p>
+</div>
+
+<div class="term">
+  <p class="name">ARP <span class="en">Address Resolution Protocol，地址解析协议</span></p>
+  <span class="metaphor">用 IP 打听门牌号（MAC）</span>
+  <p class="row"><span class="lbl">人话</span>局域网内靠 IP 找对应网卡物理地址（MAC）的机制；无防护时会被"ARP 欺骗"劫持流量。</p>
+  <p class="row eg"><span class="lbl">例子</span>攻击者回假 ARP 把自己变成"网关"，同网段流量全经过他。</p>
+  <p class="row one"><span class="lbl">一句话</span>内网的"问路协议"，也能被冒充带偏。</p>
+</div>
+
+<div class="term">
+  <p class="name">IoT <span class="en">Internet of Things，物联网</span></p>
+  <span class="metaphor">万物连上网，冰箱也上网</span>
+  <p class="row"><span class="lbl">人话</span>把传感器、家电、摄像头、工业设备连起来采集与控制；好处多，但设备安全性参差，常成攻击入口。</p>
+  <p class="row eg"><span class="lbl">例子</span>摄像头弱口令被拉进僵尸网络，参与大规模 DDoS。</p>
+  <p class="row one"><span class="lbl">一句话</span>连得越多，暴露面越大，安全要从设备抓起。</p>
+</div>
+
+<h2 class="sec" id="s7"><span class="n">七</span>数据库</h2>
+
+<div class="term">
+  <p class="name">ACID <span class="en">原子性 / 一致性 / 隔离性 / 持久性</span></p>
+  <span class="metaphor">转账要么全成，要么全不算</span>
+  <p class="row"><span class="lbl">人话</span>事务的四保证：操作不可分割（原子）、数据始终合规（一致）、并发互不干扰（隔离）、提交后永久生效（持久）。</p>
+  <p class="row eg"><span class="lbl">例子</span>扣款和到账必须同生同死，不能只扣不打。</p>
+  <p class="row one"><span class="lbl">一句话</span>关系库事务的"金标准"。</p>
+</div>
+
+<div class="term">
+  <p class="name">BASE <span class="en">基本可用 / 软状态 / 最终一致性</span></p>
+  <span class="metaphor">先能用，慢慢再对齐</span>
+  <p class="row"><span class="lbl">人话</span>NoSQL/分布式常用的取舍：保基本可用、允许中间软状态、追求最终一致，用一致性换性能和扩展性。</p>
+  <p class="row eg"><span class="lbl">例子</span>你发的评论朋友晚几秒才看到，这就是最终一致。</p>
+  <p class="row one"><span class="lbl">一句话</span>强一致让位给高可用，讲究"差不多齐活"。</p>
+</div>
+
+<div class="term">
+  <p class="name">NoSQL</p>
+  <span class="metaphor">不按表格规矩来的数据库</span>
+  <p class="row"><span class="lbl">人话</span>为海量、灵活、高并发场景设计的非关系型数据库（键值/文档/列/图），schema 灵活、易横向扩展。</p>
+  <p class="row eg"><span class="lbl">例子</span>用文档库存结构多变的用户资料，不必先定死表结构。</p>
+  <p class="row one"><span class="lbl">一句话</span>要规模和灵活，就得在强一致/事务上做取舍。</p>
+</div>
+
+<div class="term">
+  <p class="name">WAL <span class="en">Write-Ahead Logging，预写日志</span></p>
+  <span class="metaphor">先记账，后办事</span>
+  <p class="row"><span class="lbl">人话</span>改数据前先把"要做什么"写进日志，崩溃后靠日志重放恢复，保证持久性、支撑事务。</p>
+  <p class="row eg"><span class="lbl">例子</span>断电重启后数据库按 WAL 重放，回到崩溃前的一致状态。</p>
+  <p class="row one"><span class="lbl">一句话</span>先留凭据，才能反悔和恢复。</p>
+</div>
+
+<div class="term">
+  <p class="name">DAO / DBA <span class="en">数据管理员 / 数据库管理员</span></p>
+  <span class="metaphor">一个定"存什么"，一个管"怎么存稳"</span>
+  <p class="row"><span class="lbl">人话</span>DAO 从业务出发管数据的定义、标准、逻辑设计；DBA 管物理设计、性能、备份恢复、运行维护。</p>
+  <p class="row eg"><span class="lbl">例子</span>定字段口径和命名规范是 DAO，调慢查询、做灾备是 DBA。</p>
+  <p class="row one"><span class="lbl">一句话</span>一个懂业务管口径，一个懂技术管跑得稳。</p>
+</div>
+
+<h2 class="sec" id="s8"><span class="n">八</span>系统与服务管理</h2>
+
+<div class="term">
+  <p class="name">VDI <span class="en">Virtual Desktop Infrastructure，虚拟桌面基础架构</span></p>
+  <span class="metaphor">把电脑桌面搬进机房，你只收"画面"</span>
+  <p class="row"><span class="lbl">人话</span>桌面跑在服务器虚拟机上，本地只传键鼠和画面；数据不落地，便于集中管控和防泄。</p>
+  <p class="row eg"><span class="lbl">例子</span>用 VDI 浏览网页，即使中招也只脏了服务器上的临时虚拟机。</p>
+  <p class="row one"><span class="lbl">一句话</span>本地只剩一块屏幕，风险和数据都收在云端。</p>
+</div>
+
+<div class="term">
+  <p class="name">ITIL <span class="en">IT 基础架构库</span></p>
+  <span class="metaphor">IT 运维的"服务管理教科书"</span>
+  <p class="row"><span class="lbl">人话</span>一套 IT 服务管理最佳实践框架，讲事件/问题/变更/配置/容量等流程怎么管，让 IT 像"服务"一样经营。</p>
+  <p class="row eg"><span class="lbl">例子</span>报修走"事件管理"，反复出现的根因走"问题管理"根治。</p>
+  <p class="row one"><span class="lbl">一句话</span>把"修电脑"升级成"经营 IT 服务"。</p>
+</div>
+
+<div class="term">
+  <p class="name">MTBF / MTTR / MTRS <span class="en">平均故障间隔 / 平均修复时间 / 平均服务恢复时间</span></p>
+  <span class="metaphor">多久坏一次 vs 多久修好 vs 多久恢复服务</span>
+  <p class="row"><span class="lbl">人话</span>MTBF 看可靠性（越长越好）；MTTR/MTRS 看可维护性（越短越好），是可用性的两个抓手。</p>
+  <p class="row eg"><span class="lbl">例子</span>系统月月崩但 10 分钟恢复——可靠性差、可维护性尚可。</p>
+  <p class="row one"><span class="lbl">一句话</span>一个防患，一个救急，合用才谈得上可用性。</p>
+</div>
+
+<div class="term">
+  <p class="name">SLA <span class="en">Service Level Agreement，服务等级协议</span></p>
+  <span class="metaphor">服务商给你打的"服务欠条"</span>
+  <p class="row"><span class="lbl">人话</span>和客户/供应商白纸黑字约定服务质量指标（可用率、响应时间等）和未达标的后果。</p>
+  <p class="row eg"><span class="lbl">例子</span>云服务承诺 99.9% 可用，达不到按比例赔付。</p>
+  <p class="row one"><span class="lbl">一句话</span>把"尽量稳定"变成可考核的承诺。</p>
+</div>
+
+<div class="term">
+  <p class="name">RTO / RPO <span class="en">恢复时间目标 / 恢复点目标</span></p>
+  <span class="metaphor">停机多久能回来 vs 能容忍丢多少</span>
+  <p class="row"><span class="lbl">人话</span>灾备两个核心指标：RTO 是故障后多久恢复业务；RPO 是能接受丢多长时间的数据。</p>
+  <p class="row eg"><span class="lbl">例子</span>RTO=1 小时、RPO=15 分钟，意味着要热备且近实时备份。</p>
+  <p class="row one"><span class="lbl">一句话</span>一个定"多快要回来"，一个定"最多能丢多少"。</p>
+</div>
+
+<div class="term">
+  <p class="name">BCP <span class="en">Business Continuity Plan，业务连续性计划</span></p>
+  <span class="metaphor">公司的"灾难求生剧本"</span>
+  <p class="row"><span class="lbl">人话</span>预先规划重大中断（灾害、攻击、疫情）时如何保住关键业务运转，含备用场地、切换流程、演练。</p>
+  <p class="row eg"><span class="lbl">例子</span>主数据中心宕机，按 BCP 切到异地继续下单。</p>
+  <p class="row one"><span class="lbl">一句话</span>平常不演练，出事全抓瞎。</p>
+</div>
+
+<div class="term">
+  <p class="name">KEDB <span class="en">Known Error Database，已知错误数据库</span></p>
+  <span class="metaphor">踩过的坑，记下来别再踩</span>
+  <p class="row"><span class="lbl">人话</span>把已知问题、根因和绕过的办法存成库，出故障时快速匹配、缩短 MTTR。</p>
+  <p class="row eg"><span class="lbl">例子</span>报"登录慢"，一查 KEDB 发现是某个已知缓存问题，直接按预案处理。</p>
+  <p class="row one"><span class="lbl">一句话</span>把一次排查的经验，变成大家的快速通道。</p>
+</div>
+
+<div class="term">
+  <p class="name">RAID <span class="en">Redundant Array of Independent Disks，独立磁盘冗余阵列</span></p>
+  <span class="metaphor">多块硬盘组队，既提速又兜底</span>
+  <p class="row"><span class="lbl">人话</span>把多块盘组合起来，靠条带化提速、镜像/校验冗余，坏一两块盘数据不丢、服务不断。</p>
+  <p class="row eg"><span class="lbl">例子</span>RAID 5 坏一块盘，换新的后靠校验重建，数据完好。</p>
+  <p class="row one"><span class="lbl">一句话</span>用多盘换性能和安全，但备份仍不能省。</p>
+</div>
+
+<div class="term">
+  <p class="name">RPA <span class="en">Robotic Process Automation，机器人流程自动化</span></p>
+  <span class="metaphor">让软件机器人替人干重复活</span>
+  <p class="row"><span class="lbl">人话</span>模拟人在系统里的点击录入，把规则固定的重复流程自动化，提效减错（不适合需要判断的活）。</p>
+  <p class="row eg"><span class="lbl">例子</span>每天自动登录多个系统下载报表、汇总发邮件。</p>
+  <p class="row one"><span class="lbl">一句话</span>专治"重复、规则明确"的体力活。</p>
+</div>
+
+<div class="term">
+  <p class="name">SBOM <span class="en">Software Bill of Materials，软件物料清单</span></p>
+  <span class="metaphor">软件的"配料表 + 供应商"</span>
+  <p class="row"><span class="lbl">人话</span>列出一款软件用了哪些组件、版本、来源，出漏洞时能快速判断自己是否中招、影响面多大。</p>
+  <p class="row eg"><span class="lbl">例子</span>Log4j 爆发时，靠 SBOM 秒查哪些系统用了受影响版本。</p>
+  <p class="row one"><span class="lbl">一句话</span>看不清自己用了啥，出事先慌一半。</p>
+</div>
+
+<h2 class="sec" id="s9"><span class="n">九</span>项目管理与挣值</h2>
+
+<div class="term">
+  <p class="name">EVM <span class="en">Earned Value Management，挣值管理</span></p>
+  <span class="metaphor">把进度换算成钱来称一称</span>
+  <p class="row"><span class="lbl">人话</span>用 PV/EV/AC 三个值定量看项目"计划干多少、实际干了多少、实际花了多少"，从而判断进度和成本偏差。</p>
+  <p class="row eg"><span class="lbl">例子</span>该干 100 的活只干了 80 却花了 120，一眼看出进度落后还超支。</p>
+  <p class="row one"><span class="lbl">一句话</span>进度和成本，用同一把尺子量。</p>
+</div>
+
+<div class="term">
+  <p class="name">PV / EV / AC <span class="en">计划价值 / 挣值 / 实际成本</span></p>
+  <span class="metaphor">计划菜单 / 真正吃到的 / 实际结账</span>
+  <p class="row"><span class="lbl">人话</span>PV 是到现在"计划该完成"的预算；EV 是到现在"实际完成"对应的预算；AC 是到现在"真金白银花了"多少。</p>
+  <p class="row eg"><span class="lbl">例子</span>EV&lt;PV 进度落后，EV&lt;AC 成本超支。</p>
+  <p class="row one"><span class="lbl">一句话</span>三个数一比，项目好坏立现。</p>
+</div>
+
+<div class="term">
+  <p class="name">CPI / SPI <span class="en">成本绩效指数 / 进度绩效指数</span></p>
+  <span class="metaphor">每一块钱买到的进度 / 计划 vs 实际</span>
+  <p class="row"><span class="lbl">人话</span>CPI=EV/AC（&lt;1 超支）、SPI=EV/PV（&lt;1 落后），量化"效率"和"进度"的偏离程度。</p>
+  <p class="row eg"><span class="lbl">例子</span>CPI=0.8 表示花 1 块只办成 8 毛的事。</p>
+  <p class="row one"><span class="lbl">一句话</span>大于 1 是赚，小于 1 是亏。</p>
+</div>
+
+<div class="term">
+  <p class="name">BAC / EAC / ETC <span class="en">完工预算 / 完工估算 / 尚需估算</span></p>
+  <span class="metaphor">原计划总价 / 预计最终总价 / 还得再花</span>
+  <p class="row"><span class="lbl">人话</span>BAC 是最初总预算；EAC 是预测的最终总成本；ETC 是剩下的活还要花多少（EAC = AC + ETC）。</p>
+  <p class="row eg"><span class="lbl">例子</span>按当前烧钱速度，EAC 明显高于 BAC，说明要超预算。</p>
+  <p class="row one"><span class="lbl">一句话</span>站在现在，预测终点。</p>
+</div>
+
+<div class="term">
+  <p class="name">WBS <span class="en">Work Breakdown Structure，工作分解结构</span></p>
+  <span class="metaphor">把大工程拆成一张树状任务清单</span>
+  <p class="row"><span class="lbl">人话</span>把项目目标逐层分解成可分配、可估算、可交付的小工作包，是排期和分工的地基。</p>
+  <p class="row eg"><span class="lbl">例子</span>把"建网站"拆成需求/设计/前端/后端/测试等一层层任务。</p>
+  <p class="row one"><span class="lbl">一句话</span>先拆清楚，才谈得上管得住。</p>
+</div>
+
+<div class="term">
+  <p class="name">PMBOK / PMO <span class="en">项目管理知识体系 / 项目管理办公室</span></p>
+  <span class="metaphor">项目管理的"百科全书" / "项目管家部门"</span>
+  <p class="row"><span class="lbl">人话</span>PMBOK 是项目管理方法与流程的知识体系；PMO 是组织里定标准、给支持、做监督的常设部门。</p>
+  <p class="row eg"><span class="lbl">例子</span>PMO 统一模板、把关里程碑、跨项目协调资源。</p>
+  <p class="row one"><span class="lbl">一句话</span>一个给方法，一个抓落地。</p>
+</div>
+
+<div class="term">
+  <p class="name">ROI / TCO <span class="en">投资回报率 / 总拥有成本</span></p>
+  <span class="metaphor">这笔买卖划不划算 / 买回家一共要花多少</span>
+  <p class="row"><span class="lbl">人话</span>ROI 看投入产出比；TCO 把采购 + 运维 + 培训 + 能耗等全周期成本算总账，别只看标价。</p>
+  <p class="row eg"><span class="lbl">例子</span>设备便宜但电费维修贵，TCO 可能更高。</p>
+  <p class="row one"><span class="lbl">一句话</span>一个算收益，一个算全周期的真实花费。</p>
+</div>
+
+<div class="term">
+  <p class="name">PPM <span class="en">Product Portfolio Management，项目组合管理</span></p>
+  <span class="metaphor">把一堆项目当股票组合来挑</span>
+  <p class="row"><span class="lbl">人话</span>站在组织层面排优先级、配资源，平衡"明星/金牛/问题/瘦狗"各类项目，把钱花在战略对的地方。</p>
+  <p class="row eg"><span class="lbl">例子</span>砍掉回报低的"瘦狗"项目，集中投"明星"项目。</p>
+  <p class="row one"><span class="lbl">一句话</span>不是每个项目都值得做，要会挑组合。</p>
+</div>
+
+<h2 class="sec" id="s10"><span class="n">十</span>风险与合规</h2>
+
+<div class="term">
+  <p class="name">CVE / CVSS / CWE <span class="en">漏洞编号 / 漏洞评分 / 缺陷类型</span></p>
+  <span class="metaphor">漏洞的"身份证" / "病危评分" / "病历分类"</span>
+  <p class="row"><span class="lbl">人话</span>CVE 给公开漏洞统一编号；CVSS 按利用难度和影响打 0–10 分；CWE 归纳缺陷的类型根因。</p>
+  <p class="row eg"><span class="lbl">例子</span>CVE-2021-44228（Log4Shell）CVSS 10 分，全网紧急修补。</p>
+  <p class="row one"><span class="lbl">一句话</span>一个认人，一个打分，一个归类。</p>
+</div>
+
+<div class="term">
+  <p class="name">CRYPTREC</p>
+  <span class="metaphor">日本官方的"密码算法选用白名单"</span>
+  <p class="row"><span class="lbl">人话</span>日本评估并推荐政府/企业可安心使用的密码技术清单，是选型和安全施策的参考基准。</p>
+  <p class="row eg"><span class="lbl">例子</span>日本系统选算法时对照 CRYPTREC 清单，确认仍被推荐。</p>
+  <p class="row one"><span class="lbl">一句话</span>官方替你先把密码算法把过关。</p>
+</div>
+
+<div class="term">
+  <p class="name">ISMAP <span class="en">情報セキュリティ管理基準，日本信息安全管理基准</span></p>
+  <span class="metaphor">日本的信息安全管理"操作手册"</span>
+  <p class="row"><span class="lbl">人话</span>日本推动信息安全管理的基础基准，指导组织建立方针、组织、人等管理措施（对应 ISO/IEC 27001 的思路）。</p>
+  <p class="row eg"><span class="lbl">例子</span>企业按 ISMAP 搭信息安全管理体系、明确责任人。</p>
+  <p class="row one"><span class="lbl">一句话</span>让安全管理有章可循、有人负责。</p>
+</div>
+
+<div class="term">
+  <p class="name">内部统制 <span class="en">Internal Control</span></p>
+  <span class="metaphor">公司的"自我免疫系统"</span>
+  <p class="row"><span class="lbl">人话</span>为保证业务有效、财务可靠、合规经营而建立的制度与流程，四目标：有效性/可靠性/合规/资产安全。</p>
+  <p class="row eg"><span class="lbl">例子</span>职责分离、审批流、留痕审计，都是内控的体现。</p>
+  <p class="row one"><span class="lbl">一句话</span>靠制度互相牵制，防错也防坏。</p>
+</div>
+
+<div class="term">
+  <p class="name">个人信息保护 / PIA <span class="en">Privacy Impact Assessment，隐私影响评估</span></p>
+  <span class="metaphor">动用户数据前，先评估会不会伤到人</span>
+  <p class="row"><span class="lbl">人话</span>收集使用个人信息要合法、正当、最小化；PIA 是上新系统前评估隐私风险、定保护措施的环节。</p>
+  <p class="row eg"><span class="lbl">例子</span>上新功能前评估"是否多采了不必要的信息"，超标就改设计。</p>
+  <p class="row one"><span class="lbl">一句话</span>先把隐私当需求，别等出事再补。</p>
+</div>
+
+<footer>
+  术语均取自本题库（令和元年～7年）实际出现的概念，按出现频率与重要度筛选；比喻与"人话"为帮助记忆的通俗讲解，
+  准确含义以原题解説及权威定义为准。术语表随题库更新可继续增补。
+</footer>
+</div>
+</body>
+</html>

@@ -18,11 +18,20 @@ body{margin:0;background:var(--bg);color:var(--ink);
   -webkit-font-smoothing:antialiased}
 a{color:var(--accent);text-decoration:none}
 .topbar{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);
-  border-bottom:1px solid var(--line)}
+  border-bottom:1px solid var(--line);transition:transform .28s ease}
+#topbarSpacer{display:none;height:0}
+.topbar-peek{position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:19;display:none;
+  align-items:center;gap:5px;padding:5px 16px 7px;border:1px solid var(--line);border-top:none;
+  border-radius:0 0 12px 12px;background:rgba(255,255,255,.94);backdrop-filter:blur(10px);
+  box-shadow:var(--shadow);font-size:12px;color:var(--ink-2);cursor:pointer;
+  -webkit-user-select:none;user-select:none}
+body.bars-hide .topbar-peek{display:inline-flex}
 .topbar-in{max-width:1180px;margin:0 auto;padding:16px 22px 14px;
   display:flex;flex-wrap:wrap;gap:14px 18px;align-items:flex-end;justify-content:space-between}
 .brand h1{margin:0;font-size:19px;letter-spacing:.2px;font-weight:650}
 .brand .sub{margin:4px 0 0;color:var(--ink-3);font-size:13px}
+.brand .gloss{display:inline-block;margin-top:6px;font-size:13px;color:var(--accent)}
+.brand .gloss:hover{text-decoration:underline}
 .tools{display:flex;flex-wrap:nowrap;gap:10px;align-items:center}
 .tools input[type=search],.tools select{font:inherit;font-size:14px;padding:8px 11px;border:1px solid var(--line);
   border-radius:9px;background:#fff;color:var(--ink);min-width:120px;outline:none}
@@ -141,7 +150,12 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
   main{order:1}
   .tools{flex-wrap:wrap}
   .tools input[type=search]{min-width:0;flex:1 1 100%}
+  /* 移动端：顶部交互栏默认收起，从顶部下拉手势（或点顶部细条）恢复 */
+  .topbar{position:fixed;top:0;left:0;right:0}
+  body.bars-hide .topbar{transform:translateY(-102%);pointer-events:none}
+  #topbarSpacer{display:block;transition:height .28s ease}
 }
+@media(min-width:981px){.topbar-peek{display:none!important}}
 @media print{
   .topbar,aside,.totop{display:none}
   .layout{display:block;padding:0}
@@ -154,6 +168,7 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
   <div class="topbar-in">
     <div class="brand">
       <h1>情報処理安全確保支援士 中文题库</h1>
+      <a class="gloss" href="术语人话表.html">📖 术语人话表</a>
     </div>
     <div class="tools">
       <input id="q" type="search" placeholder="搜索题号 / 关键词（中・日）">
@@ -166,6 +181,8 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
     </div>
   </div>
 </header>
+<div id="topbarSpacer" aria-hidden="true"></div>
+<div class="topbar-peek" id="topbarPeek" role="button" tabindex="0" aria-label="恢复顶部菜单">☰ 菜单</div>
 
 <div class="layout">
   <aside>
@@ -492,6 +509,57 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
   const totop = document.getElementById('totop');
   window.addEventListener('scroll', () => totop.style.display = window.scrollY > 600 ? 'block' : 'none');
   totop.addEventListener('click', () => window.scrollTo({ top: 0 }));
+
+  // ---------- 移动端顶部交互栏：默认收起，顶部下拉手势恢复 ----------
+  (function () {
+    const mq = window.matchMedia('(max-width:980px)');
+    const topbar = document.querySelector('.topbar');
+    const spacer = document.getElementById('topbarSpacer');
+    const peek = document.getElementById('topbarPeek');
+    let shown = !mq.matches;              // 桌面端始终展开
+    let suppressUntil = 0;                // 展开动画期间不触发自动收起
+    const sync = () => { spacer.style.height = shown ? topbar.offsetHeight + 'px' : '0px'; };
+    const apply = () => { document.body.classList.toggle('bars-hide', !shown); sync(); };
+    if (mq.matches) apply();              // 移动端初始收起
+    if (mq.addEventListener) mq.addEventListener('change', e => { shown = !e.matches; apply(); });
+    const showBars = () => {
+      if (shown) return;
+      shown = true; apply();
+      suppressUntil = Date.now() + 500;
+    };
+    peek.addEventListener('click', showBars);
+    peek.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showBars(); } });
+    window.addEventListener('resize', () => { if (mq.matches) sync(); });
+
+    // 顶部下拉手势：在屏幕顶部一带（或页面已滚到最顶）向下滑即恢复
+    let sy = 0, sx = 0, tracking = false;
+    const TOP_ZONE = 90, DIST = 45;
+    window.addEventListener('touchstart', e => {
+      if (!mq.matches) return;
+      const t = e.touches[0];
+      tracking = window.scrollY <= 0 || t.clientY <= TOP_ZONE;
+      sy = t.clientY; sx = t.clientX;
+    }, { passive: true });
+    window.addEventListener('touchmove', e => {
+      if (!mq.matches || !tracking) return;
+      const t = e.touches[0];
+      if (t.clientY - sy > DIST && Math.abs(t.clientX - sx) < 60) {
+        showBars(); tracking = false;
+      }
+    }, { passive: true });
+    window.addEventListener('touchend', () => { tracking = false; }, { passive: true });
+
+    // 已恢复后继续向下浏览会自动收起，避免挡住题目
+    let lastY = window.scrollY;
+    window.addEventListener('scroll', () => {
+      if (!mq.matches) return;
+      const y = window.scrollY;
+      if (shown && Date.now() > suppressUntil && y > 200 && y > lastY + 24) {
+        shown = false; apply();
+      }
+      lastY = y;
+    }, { passive: true });
+  })();
 
   applyFilter();   // 应用恢复后的考期/分类筛选
   refreshScore();
