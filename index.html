@@ -32,6 +32,7 @@ body.bars-hide .topbar-peek{display:inline-flex}
 .brand .sub{margin:4px 0 0;color:var(--ink-3);font-size:13px}
 .brand .gloss{display:inline-block;margin-top:6px;font-size:13px;color:var(--accent)}
 .brand .gloss:hover{text-decoration:underline}
+.bars-close{display:none}
 .tools{display:flex;flex-wrap:nowrap;gap:10px;align-items:center}
 .tools input[type=search],.tools select{font:inherit;font-size:14px;padding:8px 11px;border:1px solid var(--line);
   border-radius:9px;background:#fff;color:var(--ink);min-width:120px;outline:none}
@@ -154,6 +155,7 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
   .topbar{position:fixed;top:0;left:0;right:0}
   body.bars-hide .topbar{transform:translateY(-102%);pointer-events:none}
   #topbarSpacer{display:block;transition:height .28s ease}
+  .bars-close{display:inline-block}
 }
 @media(min-width:981px){.topbar-peek{display:none!important}}
 @media print{
@@ -178,6 +180,7 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
       <label class="sw"><input type="checkbox" id="showAll">显示全部答案</label>
       <label class="sw" title="题干与选项就地切换为日文原题，并隐藏每题论点（便于自测）"><input type="checkbox" id="showJp">显示日文原题（隐藏论点）</label>
       <span class="score" id="score">已答 <b>0</b>/660</span>
+      <button class="btn bars-close" id="barsClose" title="收起顶部菜单">收起 ▴</button>
     </div>
   </div>
 </header>
@@ -187,7 +190,7 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
 <div class="layout">
   <aside>
     <nav id="toc"></nav>
-    <p class="hint">点选项即判分，答对为绿色、答错为红色，答案自动记录在本机。顶部可切换考期，并选择午前Ⅰ/Ⅱ/全部来统计正确率；切换「显示全部答案」可一次性核对整页，切换「显示日文原题」可把题干与选项换成日文原题，并隐藏每题论点以便自测。</p>
+    <p class="hint">点选项即判分，答对为绿色、答错为红色，答案自动记录在本机。顶部可切换考期，并选择午前Ⅰ/Ⅱ/全部来统计正确率；切换「显示全部答案」可一次性核对整页，切换「显示日文原题」可把题干与选项换成日文原题，并隐藏每题论点以便自测。移动端顶部栏默认收起：从屏幕顶部下拉恢复，在菜单上向上滑或点「收起」缩回。</p>
   </aside>
   <main id="list"></main>
 </div>
@@ -527,25 +530,33 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
       shown = true; apply();
       suppressUntil = Date.now() + 500;
     };
+    const hideBars = () => {
+      if (!shown) return;
+      shown = false; apply();
+    };
     peek.addEventListener('click', showBars);
     peek.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showBars(); } });
+    document.getElementById('barsClose').addEventListener('click', hideBars);
     window.addEventListener('resize', () => { if (mq.matches) sync(); });
 
-    // 顶部下拉手势：在屏幕顶部一带（或页面已滚到最顶）向下滑即恢复
+    // 顶部下拉手势：在屏幕顶部一带（或页面已滚到最顶）向下滑即恢复；
+    // 反向手势：手指落在展开的菜单上向上滑即缩回
     let sy = 0, sx = 0, tracking = false;
     const TOP_ZONE = 90, DIST = 45;
     window.addEventListener('touchstart', e => {
       if (!mq.matches) return;
       const t = e.touches[0];
-      tracking = window.scrollY <= 0 || t.clientY <= TOP_ZONE;
+      const onBars = shown && t.clientY <= topbar.offsetHeight;   // 按在菜单上
+      tracking = window.scrollY <= 0 || t.clientY <= TOP_ZONE || onBars;
       sy = t.clientY; sx = t.clientX;
     }, { passive: true });
     window.addEventListener('touchmove', e => {
       if (!mq.matches || !tracking) return;
       const t = e.touches[0];
-      if (t.clientY - sy > DIST && Math.abs(t.clientX - sx) < 60) {
-        showBars(); tracking = false;
-      }
+      const dy = t.clientY - sy, dx = Math.abs(t.clientX - sx);
+      if (dx >= 60) return;
+      if (dy > DIST) { showBars(); tracking = false; }
+      else if (dy < -DIST) { hideBars(); tracking = false; }
     }, { passive: true });
     window.addEventListener('touchend', () => { tracking = false; }, { passive: true });
 
