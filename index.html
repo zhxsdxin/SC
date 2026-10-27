@@ -32,6 +32,8 @@ body.bars-hide .topbar-peek{display:inline-flex}
 .brand .sub{margin:4px 0 0;color:var(--ink-3);font-size:13px}
 .brand .gloss{display:inline-block;margin-top:6px;font-size:13px;color:var(--accent)}
 .brand .gloss:hover{text-decoration:underline}
+.brand .glossrow{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline}
+.brand .glossrow .gloss{white-space:nowrap}
 .bars-close{display:none}
 .tools{display:flex;flex-wrap:nowrap;gap:10px;align-items:center}
 .tools input[type=search],.tools select{font:inherit;font-size:14px;padding:8px 11px;border:1px solid var(--line);
@@ -42,6 +44,22 @@ body.bars-hide .topbar-peek{display:inline-flex}
 .sw{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-2);white-space:nowrap;
   background:#fff;border:1px solid var(--line);border-radius:9px;padding:8px 12px;cursor:pointer;user-select:none}
 .sw input{margin:0;accent-color:var(--accent);width:15px;height:15px}
+/* 顶部图标开关：答案 / 日文原题 / 倒计时 */
+.ibars{display:flex;gap:6px;align-items:center;flex:0 0 auto}
+.ico{min-width:38px;height:38px;padding:0 10px;border:1px solid var(--line);border-radius:11px;background:#fff;
+  color:var(--ink-2);font:inherit;font-size:17px;line-height:1;cursor:pointer;display:inline-flex;
+  align-items:center;justify-content:center;gap:6px;touch-action:manipulation;
+  -webkit-user-select:none;user-select:none;transition:.14s}
+.ico:hover{border-color:var(--accent);color:var(--accent);background:#f8faff}
+.ico.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.ico .t{font-size:12.5px;font-weight:650;font-variant-numeric:tabular-nums;letter-spacing:.2px}
+.ico.tm.running{background:var(--accent-soft);border-color:#c3d0f0;color:var(--accent)}
+.ico.tm.over{background:var(--bad-soft);border-color:var(--bad);color:var(--bad);animation:tick .7s ease-in-out 3}
+@keyframes tick{0%,100%{transform:scale(1)}40%{transform:scale(1.09)}}
+#toast{position:fixed;left:50%;bottom:34px;transform:translate(-50%,12px);z-index:60;
+  background:rgba(31,36,48,.94);color:#fff;font-size:13.5px;padding:9px 16px;border-radius:10px;
+  opacity:0;pointer-events:none;transition:.22s;box-shadow:var(--shadow);white-space:nowrap}
+#toast.show{opacity:1;transform:translate(-50%,0)}
 .score{font-size:13px;color:var(--ink-2);background:#fff;border:1px solid var(--line);
   border-radius:9px;padding:8px 12px;white-space:nowrap;flex:0 0 auto}
 .score b{color:var(--accent);font-weight:650}
@@ -66,6 +84,7 @@ main{display:flex;flex-direction:column;gap:20px;min-width:0}
 .q{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
   box-shadow:var(--shadow);padding:20px 24px 18px;scroll-margin-top:110px}
 .q.hide{display:none}
+.q.hl{border-color:var(--accent);box-shadow:0 0 0 3px rgba(47,91,215,.16);transition:box-shadow .4s}
 .qhead{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline;margin-bottom:12px}
 .badge{display:inline-block;font-size:12px;font-weight:650;color:var(--accent);background:var(--accent-soft);
   border-radius:999px;padding:3px 10px;white-space:nowrap;text-decoration:none;transition:.14s}
@@ -170,15 +189,27 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
   <div class="topbar-in">
     <div class="brand">
       <h1>情報処理安全確保支援士 中文题库</h1>
-      <a class="gloss" href="术语人话表.html">📖 术语人话表</a>
+      <div class="glossrow">
+        <a class="gloss" href="重复题库.html">🔁 重复题</a>
+        <a class="gloss" href="计算题库.html">🔢 计算题</a>
+        <a class="gloss" href="关键词对照.html">🔑 关键词</a>
+        <a class="gloss" href="标准速记.html">🏷 标准速记</a>
+        <a class="gloss" href="术语人话表.html">📖 术语人话表</a>
+      </div>
     </div>
     <div class="tools">
       <input id="q" type="search" placeholder="搜索题号 / 关键词（中・日）">
       <select id="exam" aria-label="按考期筛选"></select>
       <select id="part" aria-label="正确率统计范围"></select>
       <select id="cat" aria-label="按分类筛选"></select>
-      <label class="sw"><input type="checkbox" id="showAll">显示全部答案</label>
-      <label class="sw" title="题干与选项就地切换为日文原题，并隐藏每题论点（便于自测）"><input type="checkbox" id="showJp">显示日文原题（隐藏论点）</label>
+      <div class="ibars">
+        <button type="button" class="ico" id="showAll" aria-pressed="false"
+          title="显示全部答案与详解（再点一次收起）" aria-label="显示全部答案">👁</button>
+        <button type="button" class="ico" id="showJp" aria-pressed="false"
+          title="题干与选项就地换成日文原题，并隐藏每题论点（便于自测）" aria-label="显示日文原题">あ</button>
+        <button type="button" class="ico tm" id="timer"
+          title="双击开始/暂停 · 长按改时长（午前Ⅰ22分・午前Ⅱ18分・全部40分）" aria-label="倒计时">⏱<span class="t" id="tleft">40:00</span></button>
+      </div>
       <span class="score" id="score">已答 <b>0</b>/660</span>
       <button class="btn bars-close" id="barsClose" title="收起顶部菜单">收起 ▴</button>
     </div>
@@ -190,7 +221,7 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
 <div class="layout">
   <aside>
     <nav id="toc"></nav>
-    <p class="hint">点选项即判分，答对为绿色、答错为红色，答案自动记录在本机。顶部可切换考期，并选择午前Ⅰ/Ⅱ/全部来统计正确率；切换「显示全部答案」可一次性核对整页，切换「显示日文原题」可把题干与选项换成日文原题，并隐藏每题论点以便自测。移动端顶部栏默认收起：从屏幕顶部下拉恢复，在菜单上向上滑或点「收起」缩回。</p>
+    <p class="hint">点选项即判分，答对为绿色、答错为红色，答案自动记录在本机。顶部可切换考期，并选择午前Ⅰ/Ⅱ/全部来统计正确率。三个图标：<b>👁</b> 一次性展开整页答案与详解；<b>あ</b> 把题干与选项换成日文原题并隐藏每题论点，便于自测；<b>⏱</b> 倒计时——双击开始或暂停，长按可改时长，默认时长跟随统计范围（午前Ⅰ 22 分、午前Ⅱ 18 分、全部 40 分）。移动端顶部栏默认收起：从屏幕顶部下拉恢复，在菜单上向上滑或点「收起」缩回。</p>
   </aside>
   <main id="list"></main>
 </div>
@@ -403,13 +434,22 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
     if (e.target.classList.contains('reveal')) { reveal(card, false); e.target.remove(); }
   });
 
-  showAll.addEventListener('change', () => {
+  const ALL_KEY = 'sc-' + EXAMS.map(e => e.id).join('+') + '-showall-v1';
+  let allOn = localStorage.getItem(ALL_KEY) === '1';
+  function applyAll() {
+    showAll.classList.toggle('on', allOn);
+    showAll.setAttribute('aria-pressed', allOn ? 'true' : 'false');
     DATA.forEach(q => {
       const el = cards[q.uid];
-      if (showAll.checked) reveal(el, false);
-      else el.querySelector('.ans').hidden = true;
+      if (allOn) reveal(el, false); else el.querySelector('.ans').hidden = true;
     });
+  }
+  showAll.addEventListener('click', () => {
+    allOn = !allOn;
+    localStorage.setItem(ALL_KEY, allOn ? '1' : '0');
+    applyAll();
   });
+  applyAll();
 
   // 显示日文原题 + 隐藏论点：勾选后题干/选项就地换日文，并隐藏每题论点，偏好记在本机
   const LANG_KEY = 'sc-' + EXAMS.map(e => e.id).join('+') + '-lang-v1';
@@ -423,12 +463,133 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
     }
     return 'zh';
   };
-  showJp.checked = savedLang() === 'jp';
-  applyLang(showJp.checked);
-  showJp.addEventListener('change', () => {
-    applyLang(showJp.checked);
-    localStorage.setItem(LANG_KEY, showJp.checked ? 'jp' : 'zh');
+  let jpOn = savedLang() === 'jp';
+  function applyLangBtn() {
+    applyLang(jpOn);
+    showJp.classList.toggle('on', jpOn);
+    showJp.setAttribute('aria-pressed', jpOn ? 'true' : 'false');
+  }
+  showJp.addEventListener('click', () => {
+    jpOn = !jpOn;
+    applyLangBtn();
+    localStorage.setItem(LANG_KEY, jpOn ? 'jp' : 'zh');
   });
+  applyLangBtn();
+
+  // 轻量提示条（倒计时、设置反馈等共用）
+  let toastT = 0;
+  function toast(msg) {
+    let t = document.getElementById('toast');
+    if (!t) { t = document.createElement('div'); t.id = 'toast'; document.body.appendChild(t); }
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastT);
+    toastT = setTimeout(() => t.classList.remove('show'), 2400);
+  }
+
+  // ---------- 倒计时：双击开始/暂停，长按改时长 ----------
+  // 默认时长跟着「正确率统计范围」走：午前Ⅰ 22 分、午前Ⅱ 18 分、全部 40 分
+  (function () {
+    const TM_KEY = 'sc-' + EXAMS.map(e => e.id).join('+') + '-timer-v1';
+    const DEF_MIN = { '': 40, am1: 22, am2: 18 };
+    const btn = document.getElementById('timer');
+    const lab = document.getElementById('tleft');
+    let cfg = {};
+    try { cfg = JSON.parse(localStorage.getItem(TM_KEY) || '{}'); } catch (e) { cfg = {}; }
+    let total = 0, remain = 0, tick = 0, running = false, over = false;
+
+    const curMin = () => {
+      const k = partSel.value || '';
+      return Number(cfg[k]) > 0 ? Number(cfg[k]) : (DEF_MIN[k] || 40);
+    };
+    const minLabel = () => {
+      const n = curMin();
+      return n < 1 ? Math.round(n * 60) + ' 秒' : n + ' 分钟';
+    };
+    const fmt = s => {
+      s = Math.max(0, Math.round(s));
+      return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+    };
+    function paint() {
+      lab.textContent = fmt(over ? 0 : remain);
+      btn.classList.toggle('running', running);
+      btn.classList.toggle('over', over);
+      btn.title = over ? '时间到 · 双击重来 · 长按改时长'
+        : (running ? '双击暂停 · 长按改时长' : '双击开始 · 长按改时长')
+        + '（' + curMin() + ' 分钟）';
+    }
+    function reset() {
+      stop();
+      total = Math.round(curMin() * 60);
+      remain = total; over = false; paint();
+    }
+    function stop() { clearInterval(tick); tick = 0; running = false; }
+    function start() {
+      if (over || remain <= 0) { total = Math.round(curMin() * 60); remain = total; }
+      over = false; running = true;
+      const end = Date.now() + remain * 1000;
+      tick = setInterval(() => {
+        remain = (end - Date.now()) / 1000;
+        if (remain <= 0) { remain = 0; stop(); over = true; paint(); timeUp(); return; }
+        paint();
+      }, 250);
+      paint();
+    }
+    function timeUp() {
+      toast('⏰ 时间到（' + minLabel() + '）');
+      try { navigator.vibrate && navigator.vibrate([220, 120, 220]); } catch (e) {}
+      try {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return;
+        const ac = new AC(), o = ac.createOscillator(), g = ac.createGain();
+        o.connect(g); g.connect(ac.destination); o.frequency.value = 880; g.gain.value = .08;
+        o.start();
+        setTimeout(() => { try { o.stop(); ac.close(); } catch (e) {} }, 700);
+      } catch (e) {}
+    }
+    function editMin() {
+      const k = partSel.value || '';
+      const name = k === 'am1' ? '午前Ⅰ' : (k === 'am2' ? '午前Ⅱ' : '全部');
+      const v = prompt('倒计时时长（分钟）\n范围：' + name + '　默认 ' + (DEF_MIN[k] || 40) + ' 分钟', curMin());
+      if (v === null) return;
+      const n = parseFloat(String(v).trim());
+      if (!isFinite(n) || n <= 0 || n > 600) { toast('请输入 1～600 之间的分钟数'); return; }
+      cfg[k] = n;
+      localStorage.setItem(TM_KEY, JSON.stringify(cfg));
+      reset();
+      toast('已设为 ' + n + ' 分钟（' + name + '）');
+    }
+
+    // 长按（≥520ms）改时长；两次点击间隔 <320ms 视为双击，用来开始/暂停
+    let lp = 0, longFired = false, lastClick = 0, clickT = 0;
+    btn.addEventListener('contextmenu', e => e.preventDefault());
+    btn.addEventListener('pointerdown', () => {
+      longFired = false;
+      clearTimeout(lp);
+      lp = setTimeout(() => { longFired = true; editMin(); }, 520);
+    });
+    ['pointerup', 'pointercancel', 'pointerleave', 'pointermove'].forEach(ev =>
+      btn.addEventListener(ev, () => clearTimeout(lp)));
+    btn.addEventListener('click', () => {
+      if (longFired) { longFired = false; return; }
+      const now = Date.now();
+      if (now - lastClick < 320) {
+        clearTimeout(clickT); lastClick = 0;
+        if (running) { stop(); paint(); toast('已暂停 · 剩余 ' + fmt(remain)); }
+        else { start(); toast('开始计时 ' + minLabel()); }
+      } else {
+        lastClick = now;
+        clearTimeout(clickT);
+        clickT = setTimeout(() => {
+          toast(running ? '倒计时中 · 双击暂停' : '双击开始 · 长按改时长');
+        }, 340);
+      }
+    });
+
+    // 切换统计范围时，未运行的计时器跟随新范围换默认时长
+    partSel.addEventListener('change', () => { if (!running) reset(); });
+    reset();
+  })();
 
   // ---------- 目录（按考期分组，多考期才显示组标题） ----------
   const toc = document.getElementById('toc');
@@ -449,8 +610,9 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
   document.querySelectorAll('aside a').forEach(a => {
     a.addEventListener('click', e => {
       e.preventDefault();
-      document.getElementById(a.getAttribute('href').slice(1))
-        .scrollIntoView({ block: 'start' });
+      const card = document.getElementById(a.getAttribute('href').slice(1));
+      // 跨考期跳转距离往往上万像素，全程平滑滚动要等太久，超过三屏就直接落位
+      card.scrollIntoView({ block: 'start', behavior: Math.abs(card.getBoundingClientRect().top) > 3000 ? 'instant' : 'smooth' });
     });
     links[a.getAttribute('href').slice(1)] = a;
   });
@@ -512,6 +674,31 @@ footer{max-width:1180px;margin:0 auto;padding:8px 22px 46px;color:var(--ink-3);f
   const totop = document.getElementById('totop');
   window.addEventListener('scroll', () => totop.style.display = window.scrollY > 600 ? 'block' : 'none');
   totop.addEventListener('click', () => window.scrollTo({ top: 0 }));
+
+  // ---------- 深链接：从重复题/计算题/关键词页跳来，定位到指定题目 ----------
+  // 卡片是 JS 渲染的，浏览器自带的锚点跳转赶不上渲染时机（实测会停在页首），所以这里补一次
+  let hlTimer = 0;
+  function goHash(fresh) {
+    const id = (location.hash || '').slice(1);
+    const el = cards[id];
+    if (!el) return false;
+    if (el.classList.contains('hide')) {        // 被关键词/分类/考期筛掉时，先把筛选放开
+      const rec = DATA.find(q => q.uid === id);
+      qInput.value = '';
+      catSel.value = '';
+      examSel.value = rec ? rec.exam : '';
+      applyFilter(); saveFilter(); refreshScore();
+    }
+    el.scrollIntoView({ block: 'start', behavior: Math.abs(el.getBoundingClientRect().top) > 3000 ? 'instant' : 'smooth' });
+    document.querySelectorAll('.q.hl').forEach(e => e.classList.remove('hl'));
+    el.classList.add('hl');
+    clearTimeout(hlTimer);
+    hlTimer = setTimeout(() => el.classList.remove('hl'), 4500);
+    history.replaceState(null, '', fresh ? location.hash : '#');
+    return true;
+  }
+  window.addEventListener('hashchange', () => goHash(false));
+  if (location.hash) { requestAnimationFrame(() => goHash(true)); }
 
   // ---------- 移动端顶部交互栏：默认收起，顶部下拉手势恢复 ----------
   (function () {
